@@ -1,0 +1,2505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI-Driven Revenue Command - A personalized dashboard for client research and prospecting">
+    <title>AI-Driven Revenue Command</title>
+    
+    <!-- IBM Plex Sans & Mono — Carbon Design System typeface -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="css/variables.css?v=20260716carbon">
+    <link rel="stylesheet" href="css/base.css?v=5.0">
+    <link rel="stylesheet" href="css/typography.css?v=20260716carbon">
+    <link rel="stylesheet" href="css/layout.css?v=20260711mgr">
+    <link rel="stylesheet" href="css/components.css?v=20260716carbon">
+    <link rel="stylesheet" href="css/sections.css?v=20260716carbon">
+    <link rel="stylesheet" href="css/responsive.css?v=5.0">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header__content">
+                <div class="header__left">
+                    <h1 class="header__title">AI-Driven Revenue Command</h1>
+                    
+                </div>
+                <div class="header__right">
+                    <button class="manager-toggle-btn" id="manager-dashboard-toggle" title="Manager Dashboard" style="display:none;">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                            <rect x="1" y="1" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="10" y="1" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="1" y="10" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="10" y="10" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        Manager View
+                    </button>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/IBM_logo.svg" alt="IBM Logo" class="header__logo">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============================================================ -->
+    <!-- MANAGER DASHBOARD PANEL                                       -->
+    <!-- ============================================================ -->
+    <div id="manager-dashboard" class="manager-dashboard" style="display:none;">
+        <div class="container">
+
+            <div class="manager-dashboard__header">
+                <div class="manager-dashboard__title-row">
+                    <h2 class="manager-dashboard__title">Manager Dashboard</h2>
+                    <button class="manager-dashboard__close" id="manager-dashboard-close" aria-label="Close manager dashboard">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <p class="manager-dashboard__subtitle">Team activity, pipeline correlation, shared playbooks and account watchlist.</p>
+            </div>
+
+            <!-- Tab bar -->
+            <div class="manager-tabs">
+                <button class="manager-tab active" data-tab="coverage">Account Coverage</button>
+                <button class="manager-tab" data-tab="pipeline">Pipeline Report</button>
+                <button class="manager-tab" data-tab="playbooks">Shared Playbooks</button>
+                <button class="manager-tab" data-tab="watchlist">Manager Briefing</button>
+            </div>
+
+            <!-- ── M.1 Account Coverage ── -->
+            <div class="manager-tab-panel active" id="tab-coverage">
+                <div class="manager-panel-header">
+                    <h3>Team Account Coverage</h3>
+                    <div class="manager-panel-header__actions">
+                        <select id="coverage-period-select" class="mgr-select">
+                            <option value="30">Last 30 days</option>
+                            <option value="60">Last 60 days</option>
+                            <option value="90">Last 90 days</option>
+                            <option value="all">All time</option>
+                        </select>
+                        <button class="mgr-btn-secondary" id="coverage-clear-btn">Clear history</button>
+                    </div>
+                </div>
+                <div id="coverage-summary-stats" class="coverage-stats-row"></div>
+                <div id="coverage-heatmap" class="coverage-heatmap"></div>
+                <div id="coverage-sessions-list" class="coverage-sessions-list"></div>
+                <div id="coverage-empty" class="mgr-empty" style="display:none;">
+                    <p>No research sessions recorded yet. Sessions are logged automatically each time a seller generates a response.</p>
+                </div>
+            </div>
+
+            <!-- ── M.2 Pipeline Report ── -->
+            <div class="manager-tab-panel" id="tab-pipeline">
+                <div class="manager-panel-header">
+                    <h3>Research-to-Pipeline Report</h3>
+                    <button class="mgr-btn-primary" id="add-deal-btn">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M7 1V13M1 7H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        Log Deal Outcome
+                    </button>
+                </div>
+                <p class="mgr-help-text">Link a researched account to a deal outcome to track whether board-assisted selling correlates with wins.</p>
+                <div id="pipeline-summary-stats" class="coverage-stats-row"></div>
+                <div id="pipeline-table-wrapper" class="pipeline-table-wrapper"></div>
+                <div id="pipeline-empty" class="mgr-empty" style="display:none;">
+                    <p>No deal outcomes logged yet. Click "Log Deal Outcome" to link a researched account to a pipeline result.</p>
+                </div>
+
+                <!-- Log deal modal (hidden) -->
+                <div id="deal-log-modal" class="mgr-modal-overlay" style="display:none;">
+                    <div class="mgr-modal">
+                        <div class="mgr-modal__header">
+                            <h4>Log Deal Outcome</h4>
+                            <button class="mgr-modal__close" id="deal-log-close">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="mgr-modal__body">
+                            <div class="mgr-field">
+                                <label class="mgr-label">Account name</label>
+                                <input type="text" id="deal-account-input" class="mgr-input" placeholder="e.g. Acme Corp" list="deal-account-suggestions"/>
+                                <datalist id="deal-account-suggestions"></datalist>
+                            </div>
+                            <div class="mgr-field">
+                                <label class="mgr-label">Seller</label>
+                                <input type="text" id="deal-seller-input" class="mgr-input" placeholder="Seller name"/>
+                            </div>
+                            <div class="mgr-field">
+                                <label class="mgr-label">Deal stage</label>
+                                <select id="deal-stage-select" class="mgr-select" style="width:100%;">
+                                    <option value="prospecting">Prospecting</option>
+                                    <option value="discovery">Discovery / Meeting booked</option>
+                                    <option value="proposal">Proposal submitted</option>
+                                    <option value="negotiation">Negotiation</option>
+                                    <option value="won">Won</option>
+                                    <option value="lost">Lost</option>
+                                </select>
+                            </div>
+                            <div class="mgr-field">
+                                <label class="mgr-label">Deal value (USD)</label>
+                                <input type="number" id="deal-value-input" class="mgr-input" placeholder="e.g. 250000"/>
+                            </div>
+                            <div class="mgr-field">
+                                <label class="mgr-label">Notes</label>
+                                <textarea id="deal-notes-input" class="mgr-input" rows="2" placeholder="Optional context…"></textarea>
+                            </div>
+                        </div>
+                        <div class="mgr-modal__footer">
+                            <button class="mgr-btn-secondary" id="deal-log-cancel">Cancel</button>
+                            <button class="mgr-btn-primary" id="deal-log-save">Save outcome</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── M.3 Shared Playbooks ── -->
+            <div class="manager-tab-panel" id="tab-playbooks">
+                <div class="manager-panel-header">
+                    <h3>Shared Playbooks</h3>
+                    <button class="mgr-btn-primary" id="add-playbook-question-btn">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M7 1V13M1 7H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        Add Question
+                    </button>
+                </div>
+                <p class="mgr-help-text">Publish approved discovery questions here. Sellers will see them as pre-loaded custom questions in Sections 2 and 3 when the industry and pillar match.</p>
+
+                <!-- Add question form (hidden) -->
+                <div id="playbook-add-form" class="playbook-add-form" style="display:none;">
+                    <div class="mgr-field">
+                        <label class="mgr-label">Question text</label>
+                        <textarea id="playbook-question-text" class="mgr-input" rows="2" placeholder="e.g. How are you currently managing cloud cost allocation across business units?"></textarea>
+                    </div>
+                    <div class="playbook-add-form__row">
+                        <div class="mgr-field">
+                            <label class="mgr-label">Industry</label>
+                            <select id="playbook-industry-select" class="mgr-select">
+                                <option value="">All industries</option>
+                                <option value="banking">Banking & Financial Markets</option>
+                                <option value="healthcare">Healthcare & Life Sciences</option>
+                                <option value="manufacturing">Manufacturing & Automotive</option>
+                                <option value="telecom">Telecommunications</option>
+                                <option value="retail">Retail & Consumer Goods</option>
+                                <option value="energy">Energy & Utilities</option>
+                                <option value="insurance">Insurance</option>
+                                <option value="federal">Federal</option>
+                                <option value="public">Public Sector</option>
+                                <option value="information-technology">Information Technology</option>
+                            </select>
+                        </div>
+                        <div class="mgr-field">
+                            <label class="mgr-label">Pillar</label>
+                            <select id="playbook-pillar-select" class="mgr-select">
+                                <option value="">All pillars</option>
+                                <option value="application-modernization">Application Modernization</option>
+                                <option value="infrastructure-automation">Infrastructure Automation</option>
+                                <option value="technology-business-management">Technology Business Management</option>
+                            </select>
+                        </div>
+                        <div class="mgr-field">
+                            <label class="mgr-label">Section</label>
+                            <select id="playbook-section-select" class="mgr-select">
+                                <option value="2">Section 2 — Research</option>
+                                <option value="3">Section 3 — Automation Pillar</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="playbook-add-form__actions">
+                        <button class="mgr-btn-secondary" id="playbook-add-cancel">Cancel</button>
+                        <button class="mgr-btn-primary" id="playbook-add-save">Publish question</button>
+                    </div>
+                </div>
+
+                <div id="playbook-questions-list" class="playbook-questions-list"></div>
+                <div id="playbook-empty" class="mgr-empty" style="display:none;">
+                    <p>No playbook questions published yet. Add a question above to share it with your team.</p>
+                </div>
+            </div>
+
+            <!-- ── Manager Briefing (was 6.2 News Watchlist) ── -->
+            <div class="manager-tab-panel" id="tab-watchlist">
+                <div class="manager-panel-header">
+                    <h3>Manager Briefing</h3>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span id="watchlist-last-fetched" class="watchlist-last-fetched"></span>
+                        <button class="mgr-btn-secondary" id="watchlist-refresh-btn" title="Refresh news and re-score signals">
+                            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="vertical-align:-1px;">
+                                <path d="M11.5 2A5.5 5.5 0 1 0 12 6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                                <path d="M9 2h2.5V4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Refresh
+                        </button>
+                        <button class="mgr-btn-primary" id="add-watchlist-btn">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                <path d="M7 1V13M1 7H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            Monitor Account
+                        </button>
+                    </div>
+                </div>
+                <p class="mgr-help-text">News is fetched for monitored accounts via Serper API. The briefing surfaces coaching actions — accounts with untouched opportunities, stale seller activity, and the top IBM-relevant signals across your portfolio.</p>
+
+                <!-- Add account form (hidden) -->
+                <div id="watchlist-add-form" class="playbook-add-form" style="display:none;">
+                    <div class="playbook-add-form__row">
+                        <div class="mgr-field" style="flex:2;">
+                            <label class="mgr-label">Account name</label>
+                            <input type="text" id="watchlist-account-input" class="mgr-input" placeholder="e.g. Citibank"/>
+                        </div>
+                        <div class="mgr-field">
+                            <label class="mgr-label">Assigned seller</label>
+                            <input type="text" id="watchlist-seller-input" class="mgr-input" placeholder="Seller name"/>
+                        </div>
+                        <div class="mgr-field">
+                            <label class="mgr-label">Priority</label>
+                            <select id="watchlist-priority-select" class="mgr-select">
+                                <option value="high">High</option>
+                                <option value="medium">Medium</option>
+                                <option value="low">Low</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="playbook-add-form__actions">
+                        <button class="mgr-btn-secondary" id="watchlist-add-cancel">Cancel</button>
+                        <button class="mgr-btn-primary" id="watchlist-add-save">Add account</button>
+                    </div>
+                </div>
+
+                <!-- Monitored accounts list -->
+                <div id="watchlist-items" class="watchlist-items"></div>
+                <div id="watchlist-empty" class="mgr-empty" style="display:none;">
+                    <p>No accounts monitored yet. Add an account above to start receiving briefing signals.</p>
+                </div>
+
+                <!-- Three briefing panels — rendered by JS -->
+                <div id="briefing-panels" style="display:none;">
+
+                    <!-- Panel 1: Untouched Opportunities -->
+                    <div class="briefing-panel" id="briefing-untouched">
+                        <div class="briefing-panel__header">
+                            <span class="briefing-panel__icon">⚠️</span>
+                            <h4 class="briefing-panel__title">Untouched Opportunities</h4>
+                            <span class="briefing-panel__desc">News arrived but seller hasn't opened the board for this account</span>
+                        </div>
+                        <div id="briefing-untouched-items"></div>
+                    </div>
+
+                    <!-- Panel 2: Stale Accounts -->
+                    <div class="briefing-panel" id="briefing-stale">
+                        <div class="briefing-panel__header">
+                            <span class="briefing-panel__icon">🕐</span>
+                            <h4 class="briefing-panel__title">Stale Accounts</h4>
+                            <span class="briefing-panel__desc">Board was used but no activity in the last 7 days while news is available</span>
+                        </div>
+                        <div id="briefing-stale-items"></div>
+                    </div>
+
+                    <!-- Panel 3: Top IBM Signals -->
+                    <div class="briefing-panel" id="briefing-signals">
+                        <div class="briefing-panel__header">
+                            <span class="briefing-panel__icon">🎯</span>
+                            <h4 class="briefing-panel__title">Top IBM Signals This Week</h4>
+                            <span class="briefing-panel__desc">Headlines scored for IBM relevance — prioritise coaching conversations around these</span>
+                        </div>
+                        <div id="briefing-signals-items"></div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <main class="dashboard">
+        <div class="container">
+            
+            <!-- Section 1: Customer and Industry -->
+            <section class="section" id="section-customer">
+                <div class="section__header">
+                    <div class="section__header-left">
+                        <span class="section__label">Section 1</span>
+                        <h2 class="section__title">Customer & Industry</h2>
+                    </div>
+                </div>
+
+                <div class="section__content">
+                    <div class="form-group">
+                        <label for="customer-name" class="form-label">Customer Name</label>
+                        <input 
+                            type="text" 
+                            id="customer-name" 
+                            class="form-input" 
+                            placeholder="Enter customer name"
+                            aria-label="Customer name"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="industry" class="form-label">Industry</label>
+                        <select id="industry" class="form-select" aria-label="Select industry">
+                            <option value="">Select Industry</option>
+                            <option value="aerospace">Aerospace and Defense</option>
+                            <option value="banking">Banking & Financial Markets</option>
+                            <option value="energy">Energy & Utilities</option>
+                            <option value="environment-sustainability">Environment and Sustainability Services</option>
+                            <option value="federal">Federal</option>
+                            <option value="healthcare">Healthcare & Life Sciences</option>
+                            <option value="information-technology">Information Technology</option>
+                            <option value="insurance">Insurance</option>
+                            <option value="manufacturing">Manufacturing & Automotive</option>
+                            <option value="public">Public Sector</option>
+                            <option value="retail">Retail & Consumer Goods</option>
+                            <option value="semiconductor">Semiconductor</option>
+                            <option value="telecom">Telecommunications</option>
+                            <option value="transportation">Transportation & Logistics</option>
+                        </select>
+                    </div>
+
+                    <div class="source-filter">
+                        <span class="source-filter__label">Sources:</span>
+                        <select class="source-filter__select" aria-label="Filter sources">
+                            <option value="all">All sources</option>
+                            <option value="web">Web sources</option>
+                            <option value="news">News sources</option>
+                            <option value="linkedin">LinkedIn</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 2: Research your Client -->
+            <section class="section" id="section-research">
+                <div class="section__header">
+                    <div class="section__header-left">
+                        <span class="section__label">Section 2</span>
+                        <h2 class="section__title">Research your Client</h2>
+                    </div>
+                    <div class="section__header-right">
+                        <button class="btn btn--primary" id="generate-all-btn" title="Generate answers for all questions at once">
+                            <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                            </svg>
+                            Generate All
+                        </button>
+                        <button class="export-btn" aria-label="Export as PDF" title="Export as PDF">
+                            <svg class="export-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2L12 8L18 10L12 12L10 18L8 12L2 10L8 8L10 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>PDF</span>
+                        </button>
+                        <button class="export-btn" aria-label="Export as PowerPoint" title="Export as PowerPoint">
+                            <svg class="export-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2L12 8L18 10L12 12L10 18L8 12L2 10L8 8L10 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>PPT</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="section__content">
+                    <!-- Big Picture Strategy -->
+                    <div class="subsection">
+                        <h3 class="subsection__title">Big Picture Strategy</h3>
+                        
+                        <div class="question-card">
+                            <div class="question-card__header">
+                                <span class="question-card__number">01</span>
+                                <h4 class="question-card__question">What are your top 3–5 strategic priorities over the next 1–3 years?</h4>
+                            </div>
+                            <button class="generate-btn">
+                                <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                </svg>
+                                Generate
+                            </button>
+                            <div class="question-card__response" style="display: none;">
+                                <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                <div class="ai-suggestions">
+                                    <div class="ai-suggestions__header">
+                                        <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                            <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                            <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                        </svg>
+                                        <span>AI Suggested Follow-ups:</span>
+                                    </div>
+                                    <ul class="ai-suggestions__list">
+                                        <li class="ai-suggestion">How do these align with current market trends?</li>
+                                        <li class="ai-suggestion">What metrics define success for these priorities?</li>
+                                        <li class="ai-suggestion">What resources are allocated to each priority?</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="question-card">
+                            <div class="question-card__header">
+                                <span class="question-card__number">02</span>
+                                <h4 class="question-card__question">What prompted these priorities (market changes, leadership vision, performance gaps)?</h4>
+                            </div>
+                            <button class="generate-btn">
+                                <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                </svg>
+                                Generate
+                            </button>
+                            <div class="question-card__response" style="display: none;">
+                                <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="question-card">
+                            <div class="question-card__header">
+                                <span class="question-card__number">03</span>
+                                <h4 class="question-card__question">How do these initiatives differentiate you from your competitors?</h4>
+                            </div>
+                            <button class="generate-btn">
+                                <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                </svg>
+                                Generate
+                            </button>
+                            <div class="question-card__response" style="display: none;">
+                                <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="question-card">
+                            <div class="question-card__header">
+                                <span class="question-card__number">04</span>
+                                <h4 class="question-card__question">How do these strategic initiatives relate to specific IT imperatives?</h4>
+                            </div>
+                            <button class="generate-btn">
+                                <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                </svg>
+                                Generate
+                            </button>
+                            <div class="question-card__response" style="display: none;">
+                                <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                <div class="ai-suggestions">
+                                    <div class="ai-suggestions__header">
+                                        <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                            <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                            <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                        </svg>
+                                        <span>AI Suggested Follow-ups:</span>
+                                    </div>
+                                    <ul class="ai-suggestions__list">
+                                        <li class="ai-suggestion">What technology investments are planned?</li>
+                                        <li class="ai-suggestion">How is IT budget allocated across initiatives?</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Custom Question Feature -->
+                        <div class="custom-question-section">
+                            <button class="add-custom-question-btn" id="add-custom-question-btn">
+                                <svg class="add-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                Ask Custom Question
+                            </button>
+
+                            <div class="custom-question-input-container" id="custom-question-input-container" style="display: none;">
+                                <div class="custom-question-input-card">
+                                    <label class="custom-question-label">Your Question:</label>
+                                    <textarea
+                                        class="custom-question-textarea"
+                                        id="custom-question-textarea"
+                                        placeholder="Type your question about the customer (e.g., What is their digital transformation strategy?)"
+                                        rows="2"
+                                    ></textarea>
+                                    <div class="custom-question-actions">
+                                        <button class="generate-btn" id="generate-custom-question-btn">
+                                            <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                            </svg>
+                                            Generate Answer
+                                        </button>
+                                        <button class="cancel-btn" id="cancel-custom-question-btn">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Container for custom question responses -->
+                            <div id="custom-questions-container"></div>
+                        </div>
+                    </div>
+
+                    <div class="source-filter">
+                        <span class="source-filter__label">Sources:</span>
+                        <span class="source-filter__count">12 sources</span>
+                        <select class="source-filter__select" aria-label="Filter sources">
+                            <option value="all">All sources</option>
+                            <option value="web">Web sources</option>
+                            <option value="news">News sources</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 3: Automation Pillars -->
+            <section class="section" id="section-automation-pillars">
+                <div class="section__header">
+                    <div class="section__header-left">
+                        <span class="section__label">Section 3</span>
+                        <h2 class="section__title">Automation Pillars</h2>
+                        <p class="section__subtitle">Select your focus area to see relevant questions</p>
+                    </div>
+                    <div class="section__header-right">
+                        <button class="btn btn--primary" id="generate-all-s3-btn" title="Generate answers for all visible pillar questions" style="display:none;">
+                            <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                            </svg>
+                            Generate All
+                        </button>
+                        <button class="export-btn" aria-label="Export as PDF" title="Export as PDF">
+                            <svg class="export-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2L12 8L18 10L12 12L10 18L8 12L2 10L8 8L10 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>PDF</span>
+                        </button>
+                        <button class="export-btn" aria-label="Export as PowerPoint" title="Export as PowerPoint">
+                            <svg class="export-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2L12 8L18 10L12 12L10 18L8 12L2 10L8 8L10 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>PPT</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="section__content">
+                    <!-- Pillar Choice List -->
+                    <div class="pillar-choice-list">
+                        <label class="pillar-choice-list__label">Select Focus Area:</label>
+                        <div class="pillar-pills">
+                            <button class="pillar-pill" data-pillar="application-modernization">
+                                <span class="pillar-pill__icon">📱</span>
+                                <span class="pillar-pill__text">Application Modernization</span>
+                            </button>
+                            <button class="pillar-pill" data-pillar="infrastructure-automation">
+                                <span class="pillar-pill__icon">⚙️</span>
+                                <span class="pillar-pill__text">Infrastructure Automation</span>
+                            </button>
+                            <button class="pillar-pill" data-pillar="technology-business-management">
+                                <span class="pillar-pill__icon">📊</span>
+                                <span class="pillar-pill__text">Technology Business Management</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="pillar-divider"></div>
+
+                    <!-- Dynamic Questions Container -->
+                    <div id="pillar-questions-container">
+                        
+                        <!-- Application Development & Integration -->
+                        <div class="subsection" data-pillar-subsection="application-modernization">
+                            <h3 class="subsection__title">Application Development & Integration</h3>
+                            
+                            <div class="question-card" data-question-number="1" data-pillar-question="application-modernization">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">1</span>
+                                    <h4 class="question-card__question">What Application development and Integration projects/initiatives are important for modernization of old IT applications and building new applications and platforms?</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">What legacy systems are being replaced?</li>
+                                            <li class="ai-suggestion">What cloud platforms are being adopted?</li>
+                                            <li class="ai-suggestion">What integration patterns are preferred?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="question-card" data-question-number="2" data-pillar-question="application-modernization">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">2</span>
+                                    <h4 class="question-card__question">What are the most common integration patterns you use or need? (Real time APIs, batch file transfers, event streaming, B2B/EDI, data sync.)</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">What integration middleware do you currently use?</li>
+                                            <li class="ai-suggestion">How do you handle API versioning?</li>
+                                            <li class="ai-suggestion">What are your data synchronization requirements?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="question-card" data-question-number="3" data-pillar-question="application-modernization">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">3</span>
+                                    <h4 class="question-card__question">Do you need to integrate across multiple clouds or business units that use different stacks?</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">Which cloud platforms are you using?</li>
+                                            <li class="ai-suggestion">How do you manage cross-cloud authentication?</li>
+                                            <li class="ai-suggestion">What are your multi-cloud governance policies?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="question-card" data-question-number="4" data-pillar-question="application-modernization">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">4</span>
+                                    <h4 class="question-card__question">Who owns integration standards and governance today—central IT, CoE, or each app team?</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">How are integration standards enforced?</li>
+                                            <li class="ai-suggestion">What governance challenges do you face?</li>
+                                            <li class="ai-suggestion">How do you balance standardization with team autonomy?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="question-card" data-question-number="5" data-pillar-question="application-modernization">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">5</span>
+                                    <h4 class="question-card__question">Do you have consistent policies for authentication, authorization, and encryption across all integrations?</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">What authentication protocols do you use?</li>
+                                            <li class="ai-suggestion">How do you manage API keys and secrets?</li>
+                                            <li class="ai-suggestion">What encryption standards are required?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="question-card" data-question-number="6" data-pillar-question="application-modernization">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">6</span>
+                                    <h4 class="question-card__question">Where do you see the most technical debt—old frameworks, outdated Java versions, container unready code, complex app server configuration?</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">What is your Java version upgrade strategy?</li>
+                                            <li class="ai-suggestion">How are you addressing containerization?</li>
+                                            <li class="ai-suggestion">What frameworks need to be modernized first?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="question-card" data-question-number="7" data-pillar-question="application-modernization">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">7</span>
+                                    <h4 class="question-card__question">When you modernize Java apps today, what approaches do you take: re platform, re host, refactor, re architect, or replace?</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">What criteria determine your modernization approach?</li>
+                                            <li class="ai-suggestion">How do you assess application modernization readiness?</li>
+                                            <li class="ai-suggestion">What tools do you use for application assessment?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="question-card" data-question-number="8" data-pillar-question="application-modernization">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">8</span>
+                                    <h4 class="question-card__question">Do you standardize on specific IDEs or pipelines (Eclipse, IntelliJ, VS Code, Jenkins, Tekton, GitHub Actions, etc.)?</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">How do you ensure consistency across development teams?</li>
+                                            <li class="ai-suggestion">What CI/CD best practices do you follow?</li>
+                                            <li class="ai-suggestion">How do you manage pipeline templates and standards?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Custom Question Feature for Application Modernization -->
+                            <div class="custom-question-section">
+                                <button class="add-custom-question-btn" data-pillar="application-modernization">
+                                    <svg class="add-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                    Ask Custom Question
+                                </button>
+
+                                <div class="custom-question-input-container" data-pillar="application-modernization" style="display: none;">
+                                    <div class="custom-question-input-card">
+                                        <label class="custom-question-label">Your Question:</label>
+                                        <textarea
+                                            class="custom-question-textarea"
+                                            placeholder="Type your question about Application Modernization (e.g., What are the key challenges in containerizing legacy applications?)"
+                                            rows="2"
+                                        ></textarea>
+                                        <div class="custom-question-actions">
+                                            <button class="generate-btn generate-custom-question-btn">
+                                                <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                    <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                                </svg>
+                                                Generate Answer
+                                            </button>
+                                            <button class="cancel-btn cancel-custom-question-btn">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Container for custom question responses -->
+                                <div class="custom-questions-container" data-pillar="application-modernization"></div>
+                            </div>
+                            </div>
+                        </div>
+
+                        <!-- Infrastructure Lifecycle Management -->
+                        <div class="subsection" data-pillar-subsection="infrastructure-automation">
+                            <h3 class="subsection__title">Infrastructure Lifecycle Management</h3>
+                            
+                            <div class="question-card" data-question-number="1" data-pillar-question="infrastructure-automation">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">1</span>
+                                    <h4 class="question-card__question">What processes currently are used to provision and manage infrastructure across your cloud environments, and how much manual effort is involved?</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">What tools are currently in use?</li>
+                                            <li class="ai-suggestion">What percentage of provisioning is automated?</li>
+                                            <li class="ai-suggestion">How long does typical provisioning take?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="question-card" data-question-number="2" data-pillar-question="infrastructure-automation">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">2</span>
+                                    <h4 class="question-card__question">Are there any recent incidents where a configuration drift or inconsistent environment caused an outage or delayed a release?</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">What was the business impact?</li>
+                                            <li class="ai-suggestion">How was the issue detected and resolved?</li>
+                                            <li class="ai-suggestion">What preventive measures were implemented?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Identity & Access Management -->
+                        <div class="subsection" data-pillar-subsection="infrastructure-automation">
+                            <h3 class="subsection__title">Identity & Access Management</h3>
+                            
+                            <div class="question-card" data-question-number="3" data-pillar-question="infrastructure-automation">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">3</span>
+                                    <h4 class="question-card__question">What challenges are they facing around cybersecurity, secrets management and Identity management?</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">What zero-trust initiatives are underway?</li>
+                                            <li class="ai-suggestion">How are secrets currently managed?</li>
+                                            <li class="ai-suggestion">What compliance requirements must be met?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="question-card" data-question-number="4" data-pillar-question="infrastructure-automation">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">4</span>
+                                    <h4 class="question-card__question">How are you currently managing, distributing, and rotating secrets (passwords, API keys, certificates, database credentials) across your apps, cloud platforms, and CI/CD pipelines, and what are the biggest gaps or risks you see in that process?</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">What secrets management tools are you currently using?</li>
+                                            <li class="ai-suggestion">How often are secrets rotated today?</li>
+                                            <li class="ai-suggestion">What compliance requirements govern your secrets management?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="question-card" data-question-number="5" data-pillar-question="infrastructure-automation">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">5</span>
+                                    <h4 class="question-card__question">Do you have (or need) a centralized, auditable way to control which identities (apps, services, humans) can access which secrets, with automated rotation and revocation, instead of static credentials hard‑coded in code, config, or scripts?</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">How do you currently audit secret access?</li>
+                                            <li class="ai-suggestion">What challenges exist with hard-coded credentials?</li>
+                                            <li class="ai-suggestion">What would be the business value of automated secret rotation?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Network Management -->
+                        <div class="subsection" data-pillar-subsection="infrastructure-automation">
+                            <h3 class="subsection__title">Network Management</h3>
+                            
+                            <div class="question-card" data-question-number="6" data-pillar-question="infrastructure-automation">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">6</span>
+                                    <h4 class="question-card__question">How do you currently detect and prioritize network performance issues across your hybrid‑cloud environment, and what's the average time it takes to move from detection to remediation?</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">What monitoring tools are currently in use?</li>
+                                            <li class="ai-suggestion">How are network incidents prioritized and escalated?</li>
+                                            <li class="ai-suggestion">What percentage of issues are resolved proactively vs reactively?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="question-card" data-question-number="7" data-pillar-question="infrastructure-automation">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">7</span>
+                                    <h4 class="question-card__question">What challenges do you face in ensuring low‑latency, reliable DNS resolution for your global user base, especially during traffic spikes or DDoS events?</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">What DNS infrastructure is currently deployed?</li>
+                                            <li class="ai-suggestion">How do you handle geographic distribution of DNS services?</li>
+                                            <li class="ai-suggestion">What DDoS mitigation strategies are in place?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="question-card" data-question-number="8" data-pillar-question="infrastructure-automation">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">8</span>
+                                    <h4 class="question-card__question">Do you currently feed performance or health metrics from your observability tools into DNS or traffic steering decisions?</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">What observability platforms are you using?</li>
+                                            <li class="ai-suggestion">How do you currently make traffic routing decisions?</li>
+                                            <li class="ai-suggestion">What metrics would be most valuable for DNS decisions?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="question-card" data-question-number="9" data-pillar-question="infrastructure-automation">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">9</span>
+                                    <h4 class="question-card__question">Do you have teams responsible for both network operations and application delivery who could jointly benefit from such integration?</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">How do network and application teams currently collaborate?</li>
+                                            <li class="ai-suggestion">What tools do each team use today?</li>
+                                            <li class="ai-suggestion">What integration challenges exist between teams?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="question-card" data-question-number="10" data-pillar-question="infrastructure-automation">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">10</span>
+                                    <h4 class="question-card__question">Where do you see the most chronic performance issues—particular regions, ISPs, VPN gateways, or Wi-Fi networks?</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">How do you currently identify performance bottlenecks?</li>
+                                            <li class="ai-suggestion">What is the business impact of these issues?</li>
+                                            <li class="ai-suggestion">How quickly can you isolate the root cause?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="question-card" data-question-number="11" data-pillar-question="infrastructure-automation">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">11</span>
+                                    <h4 class="question-card__question">Do you use DNS today to route users to the best endpoint (closest, healthiest, lowest latency), or is it static?</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">What DNS solution are you currently using?</li>
+                                            <li class="ai-suggestion">How do you define "best" endpoint for your users?</li>
+                                            <li class="ai-suggestion">What would intelligent traffic steering enable for your business?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+    
+                                <!-- Custom Question Feature for Infrastructure Automation -->
+                                <div class="custom-question-section">
+                                    <button class="add-custom-question-btn" data-pillar="infrastructure-automation">
+                                        <svg class="add-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                            <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                        Ask Custom Question
+                                    </button>
+    
+                                    <div class="custom-question-input-container" data-pillar="infrastructure-automation" style="display: none;">
+                                        <div class="custom-question-input-card">
+                                            <label class="custom-question-label">Your Question:</label>
+                                            <textarea
+                                                class="custom-question-textarea"
+                                                placeholder="Type your question about Infrastructure Automation (e.g., What are the best practices for secrets management in multi-cloud environments?)"
+                                                rows="2"
+                                            ></textarea>
+                                            <div class="custom-question-actions">
+                                                <button class="generate-btn generate-custom-question-btn">
+                                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                                    </svg>
+                                                    Generate Answer
+                                                </button>
+                                                <button class="cancel-btn cancel-custom-question-btn">Cancel</button>
+                                            </div>
+                                        </div>
+                                    </div>
+    
+                                    <!-- Container for custom question responses -->
+                                    <div class="custom-questions-container" data-pillar="infrastructure-automation"></div>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- IT Operations -->
+                        <div class="subsection" data-pillar-subsection="technology-business-management">
+                            <h3 class="subsection__title">IT Operations</h3>
+                            
+                            <div class="question-card" data-question-number="1" data-pillar-question="technology-business-management">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">1</span>
+                                    <h4 class="question-card__question">Do you have a Technology Business Management (TBM) framework or similar model in place today, or is it mostly GL/cost-center based?</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">What TBM tools or frameworks are you considering?</li>
+                                            <li class="ai-suggestion">How do you currently categorize IT costs?</li>
+                                            <li class="ai-suggestion">What are your key TBM maturity goals?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="question-card" data-question-number="2" data-pillar-question="technology-business-management">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">2</span>
+                                    <h4 class="question-card__question">How do you currently link technology spend to business outcomes or products/services you offer?</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">What business metrics do you track against IT spend?</li>
+                                            <li class="ai-suggestion">How do you measure ROI on technology investments?</li>
+                                            <li class="ai-suggestion">What visibility gaps exist in cost-to-outcome mapping?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="question-card" data-question-number="3" data-pillar-question="technology-business-management">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">3</span>
+                                    <h4 class="question-card__question">When you invest in new technology, how do you decide whether it is delivering business value or just adding run costs?</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">What value realization frameworks do you use?</li>
+                                            <li class="ai-suggestion">How do you track post-implementation benefits?</li>
+                                            <li class="ai-suggestion">What criteria define "business value" for your organization?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="question-card" data-question-number="4" data-pillar-question="technology-business-management">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">4</span>
+                                    <h4 class="question-card__question">How do you currently budget, forecast, and track IT spend (tools, process, ownership)?</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">What financial planning tools do you use?</li>
+                                            <li class="ai-suggestion">How accurate are your IT forecasts typically?</li>
+                                            <li class="ai-suggestion">Who owns the IT budgeting process?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="question-card" data-question-number="5" data-pillar-question="technology-business-management">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">5</span>
+                                    <h4 class="question-card__question">What level of transparency do you have into total cost of ownership for key services or applications (infra + labor + vendors)?</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">How do you currently calculate TCO?</li>
+                                            <li class="ai-suggestion">What cost components are hardest to track?</li>
+                                            <li class="ai-suggestion">How often do you review TCO for critical services?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="question-card" data-question-number="6" data-pillar-question="technology-business-management">
+                                <div class="question-card__header">
+                                    <span class="question-card__number">6</span>
+                                    <h4 class="question-card__question">How long does it take today to answer a CFO/CIO question like "What do we spend on Product X or Business Unit Y, all-in?"</h4>
+                                </div>
+                                <button class="generate-btn">
+                                    <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                    </svg>
+                                    Generate
+                                </button>
+                                <div class="question-card__response" style="display: none;">
+                                    <textarea class="response-field" placeholder="AI-generated response will appear here..." rows="4"></textarea>
+                                    <div class="ai-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list">
+                                            <li class="ai-suggestion">What data sources need to be consolidated?</li>
+                                            <li class="ai-suggestion">How accurate are the answers you can provide today?</li>
+                                            <li class="ai-suggestion">What would real-time cost visibility enable?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Custom Question Feature for Technology Business Management -->
+                            <div class="custom-question-section">
+                                <button class="add-custom-question-btn" data-pillar="technology-business-management">
+                                    <svg class="add-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                    Ask Custom Question
+                                </button>
+
+                                <div class="custom-question-input-container" data-pillar="technology-business-management" style="display: none;">
+                                    <div class="custom-question-input-card">
+                                        <label class="custom-question-label">Your Question:</label>
+                                        <textarea
+                                            class="custom-question-textarea"
+                                            placeholder="Type your question about Technology Business Management (e.g., How can we improve visibility into IT cost allocation across business units?)"
+                                            rows="2"
+                                        ></textarea>
+                                        <div class="custom-question-actions">
+                                            <button class="generate-btn generate-custom-question-btn">
+                                                <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                    <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                                </svg>
+                                                Generate Answer
+                                            </button>
+                                            <button class="cancel-btn cancel-custom-question-btn">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Container for custom question responses -->
+                                <div class="custom-questions-container" data-pillar="technology-business-management"></div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- No Selection Message -->
+                    <div class="no-pillar-message" id="no-pillar-message">
+                        <svg class="info-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                            <path d="M12 8V12M12 16H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <p>Please select an automation pillar above to see relevant questions.</p>
+                    </div>
+
+                    <div class="source-filter">
+                        <span class="source-filter__label">Sources:</span>
+                        <span class="source-filter__count">12 sources</span>
+                        <select class="source-filter__select" aria-label="Filter sources">
+                            <option value="all">All sources</option>
+                            <option value="web">Web sources</option>
+                            <option value="news">News sources</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 4: Potential Opportunities -->
+            <section class="section hidden-until-pillar" id="section-opportunities">
+                <div class="section__header">
+                    <div class="section__header-left">
+                        <span class="section__label">Section 4</span>
+
+                        <h2 class="section__title">Potential Opportunities</h2>
+                        <p class="section__subtitle">AI-Powered IBM Solution Mapping for <span class="customer-name-display">Selected Customer</span></p>
+                    </div>
+                    <div class="section__header-right">
+                        <button class="btn btn--primary" id="generate-opportunities-btn">
+                            <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                            </svg>
+                            Analyze Opportunities
+                        </button>
+                        <button class="export-btn" aria-label="Export as PDF" title="Export as PDF">
+                            <svg class="export-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2L12 8L18 10L12 12L10 18L8 12L2 10L8 8L10 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>PDF</span>
+                        </button>
+                        <button class="export-btn" aria-label="Export as PowerPoint" title="Export as PowerPoint">
+                            <svg class="export-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2L12 8L18 10L12 12L10 18L8 12L2 10L8 8L10 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>PPT</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="section__content">
+                    <!-- Instructions -->
+                    <div class="opportunities-instructions">
+                        <svg class="info-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M10 10V14M10 6H10.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <p>Click "Analyze Opportunities" to generate AI-powered recommendations that map customer needs from Section 2 to relevant IBM products and solutions. The analysis includes synergy detection, value estimates, and ROI projections.</p>
+                    </div>
+
+                    <!-- Opportunities Table Container -->
+                    <div id="opportunities-table-container" style="display: none;">
+                        <div class="opportunities-summary">
+                            <div class="summary-stat">
+                                <span class="stat-label">Total Opportunities</span>
+                                <span class="stat-value" id="total-opportunities">0</span>
+                            </div>
+                            <div class="summary-stat">
+                                <span class="stat-label">IBM Products Recommended</span>
+                                <span class="stat-value" id="total-products">0</span>
+                            </div>
+                            <div class="summary-stat">
+                                <span class="stat-label">Estimated Total Value</span>
+                                <span class="stat-value" id="total-value">$0M</span>
+                            </div>
+                        </div>
+
+                        <div class="opportunities-table-wrapper">
+                            <table class="opportunities-table">
+                                <thead>
+                                    <tr>
+                                        <th>Opportunity</th>
+                                        <th>IBM Products/Solutions</th>
+                                        <th>Key Capabilities</th>
+                                        <th>How It Addresses the Need</th>
+                                        <th>Benefit/Value to Customer</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="opportunities-table-body">
+                                    <!-- Opportunities will be dynamically inserted here -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="opportunities-actions">
+                            <button class="btn btn--secondary" id="add-opportunity-btn">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                                Add Custom Opportunity
+                            </button>
+                            <button class="btn btn--secondary" id="regenerate-opportunities-btn">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M13 8C13 10.7614 10.7614 13 8 13C5.23858 13 3 10.7614 3 8C3 5.23858 5.23858 3 8 3C9.36 3 10.59 3.54 11.5 4.4M11.5 4.4V2M11.5 4.4H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Regenerate Analysis
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="opportunities-empty-state" class="empty-state">
+                        <svg class="empty-state__icon" width="48" height="48" viewBox="0 0 48 48" fill="none">
+                            <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2"/>
+                            <path d="M24 16V24M24 32H24.02" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <h4 class="empty-state__title">No Opportunities Generated</h4>
+                        <p class="empty-state__text">Complete Section 2 (Research Your Client) and click "Analyze Opportunities" to generate AI-powered IBM solution recommendations</p>
+                    </div>
+                </div>
+            </section>
+            </section>
+
+            <!-- Section 5: IBM Product Research -->
+            <section class="section hidden-until-pillar" id="section-product-research">
+                <div class="section__header">
+                    <div class="section__header-left">
+                        <span class="section__label">Section 5</span>
+                        <h2 class="section__title">IBM Product Research</h2>
+                        <p class="section__subtitle">For <span class="customer-name-display">Selected Customer</span></p>
+                    </div>
+                    <div class="section__header-right">
+                        <button class="export-btn" aria-label="Export as PDF" title="Export as PDF">
+                            <svg class="export-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2L12 8L18 10L12 12L10 18L8 12L2 10L8 8L10 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>PDF</span>
+                        </button>
+                        <button class="export-btn" aria-label="Export as PowerPoint" title="Export as PowerPoint">
+                            <svg class="export-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2L12 8L18 10L12 12L10 18L8 12L2 10L8 8L10 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>PPT</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="section__content">
+                    <!-- Product Search -->
+                    <div class="product-search">
+                        <div class="search-container">
+                            <input
+                                type="text"
+                                id="product-search-input"
+                                class="search-input"
+                                placeholder="Search IBM Products or ask a question..."
+                                aria-label="Search IBM Products"
+                            >
+                            <svg class="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M14 14L18 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+
+                        <!-- Query Response Area -->
+                        <div id="query-response-area" style="display: none;">
+                            <div class="query-response-card">
+                                <div class="query-response-header">
+                                    <h4 class="query-question" id="query-question-text"></h4>
+                                    <button class="close-query-btn" id="close-query-response" aria-label="Close">
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                            <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="query-response-content">
+                                    <textarea class="query-response-field" id="query-response-field" rows="8" cols="100" readonly style="width: 100%; max-width: 100%;"></textarea>
+                                    <div class="response-sources">
+                                        <span class="sources-label">Sources:</span>
+                                        <div class="source-tags">
+                                            <span class="source-tag">IBM Documentation</span>
+                                            <span class="source-tag">IBM.com</span>
+                                            <span class="source-tag">Google AI</span>
+                                        </div>
+                                    </div>
+                                    <div class="ai-suggestions" id="query-followup-suggestions">
+                                        <div class="ai-suggestions__header">
+                                            <svg class="ai-suggestions__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                            <span>AI Suggested Follow-ups:</span>
+                                        </div>
+                                        <ul class="ai-suggestions__list" id="query-followup-list">
+                                            <!-- Follow-up questions will be dynamically inserted here -->
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="quick-access">
+                            <span class="quick-access__label">Quick Access:</span>
+                            <button class="product-tag" data-product="webmethods">webMethods IWHI</button>
+                            <button class="product-tag" data-product="sevone">SevOne</button>
+                            <button class="product-tag" data-product="ns1">NS1</button>
+                            <button class="product-tag" data-product="verify">Verify</button>
+                            <button class="product-tag" data-product="concert">Concert</button>
+                            <button class="product-tag" data-product="instana">Instana</button>
+                            <button class="product-tag" data-product="turbonomic">Turbonomic</button>
+                            <button class="product-tag" data-product="maximo">Maximo</button>
+                            <button class="product-tag" data-product="apptio">Apptio</button>
+                            <button class="product-tag" data-product="vault">Vault</button>
+                            <button class="product-tag" data-product="watsonx">watsonx</button>
+                            <button class="product-tag" data-product="bob">IBM Bob</button>
+                        </div>
+                    </div>
+
+                    <!-- Selected Product Display -->
+                    <div id="selected-product-container" style="display: none;">
+                        <div class="selected-product-header">
+                            <h3 class="selected-product-title">Selected: <span id="selected-product-name">IBM watsonx</span></h3>
+                            <button class="clear-product-btn" id="clear-product-btn">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                                Clear
+                            </button>
+                        </div>
+
+                        <!-- Dynamic Product Questions -->
+                        <div id="product-questions-container">
+                            <!-- Questions will be dynamically inserted here -->
+                        </div>
+
+                        <button class="add-product-btn" id="add-product-btn">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            Add Another Product
+                        </button>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="product-empty-state" class="empty-state">
+                        <svg class="empty-state__icon" width="48" height="48" viewBox="0 0 48 48" fill="none">
+                            <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2"/>
+                            <path d="M24 16V24M24 32H24.02" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <h4 class="empty-state__title">No Product Selected</h4>
+                        <p class="empty-state__text">Search for an IBM product above or select from Quick Access to begin research</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 6: Headlines -->
+            <section class="section hidden-until-pillar" id="section-headlines">
+                <div class="section__header">
+                    <div class="section__header-left">
+                        <span class="section__label">Section 6</span>
+                        <h2 class="section__title">Tech Headlines</h2>
+                        <p class="section__subtitle">For <span class="customer-name-display">Selected Customer</span></p>
+                    </div>
+                    <div class="section__header-right">
+                        <button class="export-btn" aria-label="Export as PDF" title="Export as PDF">
+                            <svg class="export-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2L12 8L18 10L12 12L10 18L8 12L2 10L8 8L10 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>PDF</span>
+                        </button>
+                        <button class="export-btn" aria-label="Export as PowerPoint" title="Export as PowerPoint">
+                            <svg class="export-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2L12 8L18 10L12 12L10 18L8 12L2 10L8 8L10 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>PPT</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="section__content">
+                    <div class="headlines-grid">
+                        <article class="headline-card">
+                            <div class="headline-card__header">
+                                <span class="headline-card__number">01</span>
+                                <div class="headline-card__meta">
+                                    <span class="headline-card__source">TECHCRUNCH</span>
+                                    <span class="headline-card__separator">•</span>
+                                    <span class="headline-card__time">2h ago</span>
+                                </div>
+                            </div>
+                            <h3 class="headline-card__title">Major cloud migration initiative announced to enhance digital capabilities and modernize infrastructure</h3>
+                            <a href="#" class="headline-card__link" aria-label="Read full article">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path d="M7 13L13 7M13 7H7M13 7V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </a>
+                        </article>
+
+                        <article class="headline-card">
+                            <div class="headline-card__header">
+                                <span class="headline-card__number">02</span>
+                                <div class="headline-card__meta">
+                                    <span class="headline-card__source">REUTERS</span>
+                                    <span class="headline-card__separator">•</span>
+                                    <span class="headline-card__time">5h ago</span>
+                                </div>
+                            </div>
+                            <h3 class="headline-card__title">Industry leader invests $500M in AI and automation technologies to drive innovation</h3>
+                            <a href="#" class="headline-card__link" aria-label="Read full article">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path d="M7 13L13 7M13 7H7M13 7V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </a>
+                        </article>
+
+                        <article class="headline-card">
+                            <div class="headline-card__header">
+                                <span class="headline-card__number">03</span>
+                                <div class="headline-card__meta">
+                                    <span class="headline-card__source">BLOOMBERG</span>
+                                    <span class="headline-card__separator">•</span>
+                                    <span class="headline-card__time">1d ago</span>
+                                </div>
+                            </div>
+                            <h3 class="headline-card__title">Strategic partnership with tech giants announced for cybersecurity enhancement and zero-trust implementation</h3>
+                            <a href="#" class="headline-card__link" aria-label="Read full article">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path d="M7 13L13 7M13 7H7M13 7V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </a>
+                        </article>
+
+                        <article class="headline-card">
+                            <div class="headline-card__header">
+                                <span class="headline-card__number">04</span>
+                                <div class="headline-card__meta">
+                                    <span class="headline-card__source">WALL STREET JOURNAL</span>
+                                    <span class="headline-card__separator">•</span>
+                                    <span class="headline-card__time">2d ago</span>
+                                </div>
+                            </div>
+                            <h3 class="headline-card__title">Digital transformation drives Q4 growth as sector embraces cloud-native architectures</h3>
+                            <a href="#" class="headline-card__link" aria-label="Read full article">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path d="M7 13L13 7M13 7H7M13 7V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </a>
+                        </article>
+
+                        <article class="headline-card">
+                            <div class="headline-card__header">
+                                <span class="headline-card__number">05</span>
+                                <div class="headline-card__meta">
+                                    <span class="headline-card__source">FORBES</span>
+                                    <span class="headline-card__separator">•</span>
+                                    <span class="headline-card__time">3d ago</span>
+                                </div>
+                            </div>
+                            <h3 class="headline-card__title">New API management platform launched to streamline integration and improve developer experience</h3>
+                            <a href="#" class="headline-card__link" aria-label="Read full article">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path d="M7 13L13 7M13 7H7M13 7V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </a>
+                        </article>
+                    </div>
+
+                    <div class="source-filter">
+                        <span class="source-filter__label">Sources:</span>
+                        <span class="source-filter__count">5 sources</span>
+                        <select class="source-filter__select" aria-label="Filter sources">
+                            <option value="all">All sources</option>
+                            <option value="tech">Tech news</option>
+                            <option value="business">Business news</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 7: Customer Personas and Contact -->
+            <section class="section hidden-until-pillar" id="section-contacts">
+                <div class="section__header">
+                    <div class="section__header-left">
+                        <span class="section__label">Section 7</span>
+                        <h2 class="section__title">Customer Personas & Contacts</h2>
+                        <p class="section__subtitle">For <span class="customer-name-display">Selected Customer</span></p>
+                    </div>
+                    <div class="section__header-right">
+                        <button class="export-btn" aria-label="Export as PDF" title="Export as PDF">
+                            <svg class="export-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2L12 8L18 10L12 12L10 18L8 12L2 10L8 8L10 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>PDF</span>
+                        </button>
+                        <button class="export-btn" aria-label="Export as PowerPoint" title="Export as PowerPoint">
+                            <svg class="export-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2L12 8L18 10L12 12L10 18L8 12L2 10L8 8L10 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>PPT</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="section__content">
+                    <!-- IT Leadership -->
+                    <div class="subsection">
+                        <h3 class="subsection__title">IT Leadership</h3>
+                        
+                        <div class="contact-card" data-contact-role="Chief Information Officer" data-contact-focus="Overall IT strategy, digital transformation, technology roadmap">
+                                <input type="text" class="contact-card__name" data-contact-id="cio" placeholder="Enter contact name…" aria-label="Contact name for Chief Information Officer" />
+                                <div class="contact-card__role">Chief Information Officer</div>
+                                <div class="contact-card__details">
+                                    <a href="#" class="contact-card__linkedin contact-card__linkedin--search" data-role="Chief Information Officer" target="_blank" rel="noopener noreferrer">
+                                        Search LinkedIn
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                            <path d="M6 10L10 6M10 6H6M10 6V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </a>
+                                </div>
+                                <p class="contact-card__focus">Responsibilities: Overall IT strategy, digital transformation, technology roadmap</p>
+                                <div class="contact-card__seller-tools">
+                                    <div class="contact-engagement">
+                                        <label class="contact-engagement__label">Engagement:</label>
+                                        <select class="contact-engagement__select" data-contact-id="cio">
+                                            <option value="not-contacted">Not Contacted</option>
+                                            <option value="reached-out">Reached Out</option>
+                                            <option value="met">Met</option>
+                                            <option value="champion">Champion</option>
+                                        </select>
+                                    </div>
+                                    <button class="talking-points-btn" data-contact-role="Chief Information Officer" data-contact-focus="Overall IT strategy, digital transformation, technology roadmap">
+                                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                            <path d="M2 2H12V10H7L4 12V10H2V2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                        Talking Points
+                                    </button>
+                                </div>
+                                <div class="talking-points-panel" style="display:none;"></div>
+                            </div>
+                    </div>
+
+                    <!-- Application Development & Integration -->
+                    <div class="subsection">
+                        <h3 class="subsection__title">Application Development & Integration</h3>
+                        
+                        <div class="contact-card" data-contact-role="VP of Application Development" data-contact-focus="Modernization, cloud-native applications, API strategy, microservices architecture">
+                            <input type="text" class="contact-card__name" data-contact-id="vp-appdev" placeholder="Enter contact name…" aria-label="Contact name for VP of Application Development" />
+                            <div class="contact-card__role">VP of Application Development</div>
+                            <div class="contact-card__details">
+                                <a href="#" class="contact-card__linkedin contact-card__linkedin--search" data-role="VP of Application Development" target="_blank" rel="noopener noreferrer">
+                                        Search LinkedIn
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M6 10L10 6M10 6H6M10 6V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </a>
+                            </div>
+                            <p class="contact-card__focus">Focus: Modernization, cloud-native applications, API strategy, microservices architecture</p>
+                            <div class="contact-card__seller-tools">
+                                <div class="contact-engagement">
+                                    <label class="contact-engagement__label">Engagement:</label>
+                                    <select class="contact-engagement__select" data-contact-id="vp-appdev">
+                                        <option value="not-contacted">Not Contacted</option>
+                                        <option value="reached-out">Reached Out</option>
+                                        <option value="met">Met</option>
+                                        <option value="champion">Champion</option>
+                                    </select>
+                                </div>
+                                <button class="talking-points-btn" data-contact-role="VP of Application Development" data-contact-focus="Modernization, cloud-native applications, API strategy, microservices architecture">
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                        <path d="M2 2H12V10H7L4 12V10H2V2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Talking Points
+                                </button>
+                            </div>
+                            <div class="talking-points-panel" style="display:none;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Cybersecurity & Identity Management -->
+                    <div class="subsection">
+                        <h3 class="subsection__title">Cybersecurity & Identity Management</h3>
+                        
+                        <div class="contact-card" data-contact-role="Chief Information Security Officer" data-contact-focus="Zero-trust architecture, secrets management, identity governance, compliance">
+                            <input type="text" class="contact-card__name" data-contact-id="ciso" placeholder="Enter contact name…" aria-label="Contact name for Chief Information Security Officer" />
+                            <div class="contact-card__role">Chief Information Security Officer</div>
+                            <div class="contact-card__details">
+                                <a href="#" class="contact-card__linkedin contact-card__linkedin--search" data-role="Chief Information Security Officer" target="_blank" rel="noopener noreferrer">
+                                        Search LinkedIn
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M6 10L10 6M10 6H6M10 6V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </a>
+                            </div>
+                            <p class="contact-card__focus">Focus: Zero-trust architecture, secrets management, identity governance, compliance</p>
+                            <div class="contact-card__seller-tools">
+                                <div class="contact-engagement">
+                                    <label class="contact-engagement__label">Engagement:</label>
+                                    <select class="contact-engagement__select" data-contact-id="ciso">
+                                        <option value="not-contacted">Not Contacted</option>
+                                        <option value="reached-out">Reached Out</option>
+                                        <option value="met">Met</option>
+                                        <option value="champion">Champion</option>
+                                    </select>
+                                </div>
+                                <button class="talking-points-btn" data-contact-role="Chief Information Security Officer" data-contact-focus="Zero-trust architecture, secrets management, identity governance, compliance">
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                        <path d="M2 2H12V10H7L4 12V10H2V2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Talking Points
+                                </button>
+                            </div>
+                            <div class="talking-points-panel" style="display:none;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Network Automation & Management -->
+                    <div class="subsection">
+                        <h3 class="subsection__title">Network Automation & Management</h3>
+                        
+                        <div class="contact-card" data-contact-role="Director of Network Operations" data-contact-focus="Software-defined networking, network automation, infrastructure as code">
+                            <input type="text" class="contact-card__name" data-contact-id="netops" placeholder="Enter contact name…" aria-label="Contact name for Director of Network Operations" />
+                            <div class="contact-card__role">Director of Network Operations</div>
+                            <div class="contact-card__details">
+                                <a href="#" class="contact-card__linkedin contact-card__linkedin--search" data-role="Director of Network Operations" target="_blank" rel="noopener noreferrer">
+                                        Search LinkedIn
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M6 10L10 6M10 6H6M10 6V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </a>
+                            </div>
+                            <p class="contact-card__focus">Focus: Software-defined networking, network automation, infrastructure as code</p>
+                            <div class="contact-card__seller-tools">
+                                <div class="contact-engagement">
+                                    <label class="contact-engagement__label">Engagement:</label>
+                                    <select class="contact-engagement__select" data-contact-id="netops">
+                                        <option value="not-contacted">Not Contacted</option>
+                                        <option value="reached-out">Reached Out</option>
+                                        <option value="met">Met</option>
+                                        <option value="champion">Champion</option>
+                                    </select>
+                                </div>
+                                <button class="talking-points-btn" data-contact-role="Director of Network Operations" data-contact-focus="Software-defined networking, network automation, infrastructure as code">
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                        <path d="M2 2H12V10H7L4 12V10H2V2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Talking Points
+                                </button>
+                            </div>
+                            <div class="talking-points-panel" style="display:none;"></div>
+                        </div>
+                    </div>
+
+                    <!-- ARM, APM & CVEs -->
+                    <div class="subsection">
+                        <h3 class="subsection__title">ARM, APM & CVEs</h3>
+                        
+                        <div class="contact-card" data-contact-role="Head of Application Performance" data-contact-focus="Application monitoring, performance optimization, vulnerability management, CVE tracking">
+                            <input type="text" class="contact-card__name" data-contact-id="apm" placeholder="Enter contact name…" aria-label="Contact name for Head of Application Performance" />
+                            <div class="contact-card__role">Head of Application Performance</div>
+                            <div class="contact-card__details">
+                                <a href="#" class="contact-card__linkedin contact-card__linkedin--search" data-role="Head of Application Performance" target="_blank" rel="noopener noreferrer">
+                                        Search LinkedIn
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M6 10L10 6M10 6H6M10 6V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </a>
+                            </div>
+                            <p class="contact-card__focus">Focus: Application monitoring, performance optimization, vulnerability management, CVE tracking</p>
+                            <div class="contact-card__seller-tools">
+                                <div class="contact-engagement">
+                                    <label class="contact-engagement__label">Engagement:</label>
+                                    <select class="contact-engagement__select" data-contact-id="apm">
+                                        <option value="not-contacted">Not Contacted</option>
+                                        <option value="reached-out">Reached Out</option>
+                                        <option value="met">Met</option>
+                                        <option value="champion">Champion</option>
+                                    </select>
+                                </div>
+                                <button class="talking-points-btn" data-contact-role="Head of Application Performance" data-contact-focus="Application monitoring, performance optimization, vulnerability management, CVE tracking">
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                        <path d="M2 2H12V10H7L4 12V10H2V2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Talking Points
+                                </button>
+                            </div>
+                            <div class="talking-points-panel" style="display:none;"></div>
+                        </div>
+                    </div>
+
+                    <div class="source-filter">
+                        <span class="source-filter__label">Sources:</span>
+                        <span class="source-filter__count">8 sources</span>
+                        <select class="source-filter__select" aria-label="Filter sources">
+                            <option value="all">All sources</option>
+                            <option value="linkedin">LinkedIn</option>
+                            <option value="company">Company website</option>
+                        </select>
+                    </div>
+                </div>
+
+            <!-- Section 8: Competitive Intelligence -->
+            <section class="section hidden-until-pillar" id="section-competitive">
+                <div class="section__header">
+                    <div class="section__header-left">
+                        <span class="section__label">Section 8</span>
+                        <h2 class="section__title">Competitive Intelligence</h2>
+                        <p class="section__subtitle">For <span class="customer-name-display">Selected Customer</span> in <span class="industry-display">Selected Industry</span></p>
+                    </div>
+                    <div class="section__header-right">
+                        <button class="export-btn" aria-label="Export as PDF" title="Export as PDF">
+                            <svg class="export-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2L12 8L18 10L12 12L10 18L8 12L2 10L8 8L10 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>PDF</span>
+                        </button>
+                        <button class="export-btn" aria-label="Export as PowerPoint" title="Export as PowerPoint">
+                            <svg class="export-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2L12 8L18 10L12 12L10 18L8 12L2 10L8 8L10 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>PPT</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="section__content">
+                    <!-- Competitive Query -->
+                    <div class="competitor-selection">
+                        <h3 class="subsection__title">Ask About Competitive Positioning</h3>
+                        
+                        <div class="search-container" style="max-width: 800px; margin: 0 auto;">
+                            <input
+                                type="text"
+                                id="competitor-search-input"
+                                class="search-input"
+                                placeholder="Ask how IBM products compete (e.g., 'How does IBM watsonx compare to AWS SageMaker?')..."
+                                aria-label="Ask competitive question"
+                                style="width: 100%; max-width: 100%;"
+                            >
+                            <svg class="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M14 14L18 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+
+                        <!-- Competitive Response Area -->
+                        <div id="competitive-response-area" style="display: none;">
+                            <div class="query-response-card">
+                                <div class="query-response-header">
+                                    <h4 class="query-question" id="competitive-question-text"></h4>
+                                    <button class="close-query-btn" id="close-competitive-response" aria-label="Close">
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                            <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="query-response-content">
+                                    <textarea class="query-response-field" id="competitive-response-field" rows="12" cols="100" readonly style="width: 100%; max-width: 100%;"></textarea>
+                                    <div class="response-sources">
+                                        <span class="sources-label">Analysis Based On:</span>
+                                        <div class="source-tags">
+                                            <span class="source-tag">IBM Product Data</span>
+                                            <span class="source-tag">Competitive Intelligence</span>
+                                            <span class="source-tag">Market Research</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="competitor-quick-access">
+                            <span class="quick-access__label">Common Competitors:</span>
+                            <div class="competitor-tags">
+                                <button class="competitor-tag" data-competitor="aws">AWS</button>
+                                <button class="competitor-tag" data-competitor="microsoft-azure">Microsoft Azure</button>
+                                <button class="competitor-tag" data-competitor="google-cloud">Google Cloud</button>
+                                <button class="competitor-tag" data-competitor="oracle">Oracle</button>
+                                <button class="competitor-tag" data-competitor="salesforce">Salesforce</button>
+                                <button class="competitor-tag" data-competitor="sap">SAP</button>
+                                <button class="competitor-tag" data-competitor="servicenow">ServiceNow</button>
+                                <button class="competitor-tag" data-competitor="splunk">Splunk</button>
+                            </div>
+                        </div>
+
+                        <div id="selected-competitors-display" style="display: none;">
+                            <div class="selected-competitors-header">
+                                <span class="selected-count">Selected: <span id="competitor-count">0</span> competitors</span>
+                                <button class="clear-all-btn" id="clear-all-competitors">Clear All</button>
+                            </div>
+                            <div id="selected-competitors-list" class="selected-competitors-list"></div>
+                        </div>
+                    </div>
+
+                    <!-- Comparison Matrix -->
+                    <div id="comparison-matrix-container" style="display: none;">
+                        <h3 class="subsection__title">Feature Comparison Matrix</h3>
+                        <div class="comparison-matrix" id="comparison-matrix">
+                            <!-- Matrix will be dynamically generated -->
+                        </div>
+                        <div class="matrix-legend">
+                            <span class="legend-item"><span class="legend-icon strong">✅</span> Strong</span>
+                            <span class="legend-item"><span class="legend-icon moderate">⚠️</span> Moderate</span>
+                            <span class="legend-item"><span class="legend-icon weak">❌</span> Weak/Limited</span>
+                        </div>
+                    </div>
+
+                    <!-- Battle Cards -->
+                    <div id="battle-cards-container" style="display: none;">
+                        <h3 class="subsection__title">Battle Cards</h3>
+                        <div id="battle-cards-list" class="battle-cards-list">
+                            <!-- Battle cards will be dynamically generated -->
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="competitive-empty-state" class="empty-state">
+                        <svg class="empty-state__icon" width="48" height="48" viewBox="0 0 48 48" fill="none">
+                            <path d="M24 8L28 20L40 24L28 28L24 40L20 28L8 24L20 20L24 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <h4 class="empty-state__title">No Competitors Selected</h4>
+                        <p class="empty-state__text">Select competitors above to generate comparison matrix and battle cards</p>
+                    </div>
+                </div>
+            </section>
+            </section>
+
+            <!-- Section 9: Visualisation -->
+            <section class="section hidden-until-pillar" id="section-visualisation">
+                <div class="section__header">
+                    <div class="section__header-left">
+                        <span class="section__label">Section 9</span>
+                        <h2 class="section__title">Visualisation</h2>
+                        <p class="section__subtitle">AI-generated diagrams for <span class="customer-name-display">your customer</span></p>
+                    </div>
+                    <div class="section__header-right">
+                        <button class="export-btn" id="vis-download-btn" aria-label="Download diagram" title="Download diagram as PNG" style="display:none;">
+                            <svg class="export-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 3v10M6 9l4 4 4-4M4 17h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>PNG</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="section__content">
+                    <div class="vis-form">
+
+                        <!-- Row 1: Topic + Style -->
+                        <div class="vis-form__row">
+                            <div class="vis-form__field vis-form__field--wide">
+                                <label class="vis-form__label" for="vis-topic">Diagram topic</label>
+                                <select id="vis-topic" class="vis-form__select">
+                                    <option value="">Select a topic…</option>
+                                    <optgroup label="Architecture">
+                                        <option value="hybrid-cloud">Hybrid Cloud Architecture</option>
+                                        <option value="app-modernization">Application Modernization Journey</option>
+                                        <option value="data-platform">Data &amp; AI Platform</option>
+                                        <option value="integration">Integration &amp; API Management</option>
+                                        <option value="security">Zero Trust Security Architecture</option>
+                                    </optgroup>
+                                    <optgroup label="Business">
+                                        <option value="roi">ROI &amp; Business Value</option>
+                                        <option value="maturity">Technology Maturity Model</option>
+                                        <option value="roadmap">Modernization Roadmap</option>
+                                        <option value="tbm">Technology Business Management</option>
+                                    </optgroup>
+                                    <optgroup label="Process">
+                                        <option value="before-after">Before / After Transformation</option>
+                                        <option value="decision-flow">Discovery Decision Flow</option>
+                                        <option value="custom">Custom (describe below)</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div class="vis-form__field">
+                                <label class="vis-form__label" for="vis-style">Visual style</label>
+                                <select id="vis-style" class="vis-form__select">
+                                    <option value="executive">Executive slide</option>
+                                    <option value="technical">Technical architecture</option>
+                                    <option value="infographic">Infographic</option>
+                                    <option value="flowchart">Flowchart</option>
+                                    <option value="roadmap-visual">Roadmap / timeline</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Row 2: IBM Products -->
+                        <div class="vis-form__field">
+                            <label class="vis-form__label">IBM products to feature</label>
+                            <div class="vis-product-pills" id="vis-product-pills">
+                                <button class="vis-pill" data-product="watsonx.ai">watsonx.ai</button>
+                                <button class="vis-pill" data-product="watsonx.data">watsonx.data</button>
+                                <button class="vis-pill" data-product="watsonx.governance">watsonx.governance</button>
+                                <button class="vis-pill" data-product="IBM Cloud Pak for Integration">CP4I</button>
+                                <button class="vis-pill" data-product="IBM Cloud Pak for Automation">CP4A</button>
+                                <button class="vis-pill" data-product="IBM Instana">Instana</button>
+                                <button class="vis-pill" data-product="IBM Turbonomic">Turbonomic</button>
+                                <button class="vis-pill" data-product="IBM MQ">IBM MQ</button>
+                                <button class="vis-pill" data-product="IBM Maximo">Maximo</button>
+                                <button class="vis-pill" data-product="IBM SevOne">SevOne</button>
+                                <button class="vis-pill" data-product="IBM NS1">NS1</button>
+                                <button class="vis-pill" data-product="IBM Vault">IBM Vault</button>
+                                <button class="vis-pill" data-product="IBM Apptio">Apptio</button>
+                                <button class="vis-pill" data-product="IBM Concert">Concert</button>
+                            </div>
+                        </div>
+
+                        <!-- Row 3: Custom instructions -->
+                        <div class="vis-form__field">
+                            <label class="vis-form__label" for="vis-custom">Additional instructions <span class="vis-form__optional">(optional)</span></label>
+                            <textarea id="vis-custom" class="vis-form__textarea" rows="2"
+                                placeholder="e.g. Include on-premises legacy systems on the left, show data flow with colour-coded arrows, use IBM blue colour palette…"></textarea>
+                        </div>
+
+                        <!-- Editable prompt -->
+                        <div class="vis-form__field">
+                            <div class="vis-prompt-header">
+                                <label class="vis-form__label" for="vis-prompt-editable">Full prompt <span class="vis-form__optional">— auto-assembled from above, fully editable</span></label>
+                                <button class="vis-prompt-reset-btn" id="vis-prompt-reset-btn" title="Reset to auto-assembled prompt">↺ Reset</button>
+                            </div>
+                            <textarea id="vis-prompt-editable" class="vis-form__textarea vis-prompt-editable" rows="7"
+                                placeholder="Select a topic above to auto-fill this prompt, then edit freely before generating…"></textarea>
+                        </div>
+
+                        <!-- Generate button -->
+                        <div class="vis-form__actions">
+                            <button class="btn btn--primary vis-generate-btn" id="vis-generate-btn">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M8 1l1.5 4.5L14 7l-4.5 1.5L8 13l-1.5-4.5L2 7l4.5-1.5L8 1z" fill="currentColor"/>
+                                </svg>
+                                Generate Diagram
+                            </button>
+                            <span class="vis-cost-note">~$0.04 per image · powered by Gemini 2.5 Flash</span>
+                        </div>
+                    </div>
+
+                    <!-- Output area -->
+                    <div class="vis-output" id="vis-output" style="display:none;">
+                        <div class="vis-output__toolbar">
+                            <span class="vis-output__label">Generated diagram</span>
+                            <div class="vis-output__actions">
+                                <button class="mgr-btn-secondary" id="vis-regenerate-btn" style="font-size:12px;padding:4px 12px;">Regenerate</button>
+                                <button class="mgr-btn-secondary" id="vis-copy-prompt-btn" style="font-size:12px;padding:4px 12px;">Copy prompt</button>
+                                <button class="mgr-btn-primary" id="vis-add-to-email-btn" style="font-size:12px;padding:4px 12px;" title="Insert this diagram into the Section 10 email composer">
+                                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="vertical-align:-1px;margin-right:3px;">
+                                        <path d="M1 3h11v8H1V3zM1 3l5.5 4L12 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>Add to Email
+                                </button>
+                            </div>
+                        </div>
+                        <div class="vis-output__image-wrap">
+                            <img id="vis-output-img" class="vis-output__img" src="" alt="AI-generated diagram" />
+                        </div>
+                    </div>
+
+                    <!-- Loading state -->
+                    <div class="vis-loading" id="vis-loading" style="display:none;">
+                        <div class="vis-loading__spinner"></div>
+                        <p class="vis-loading__text">Generating diagram with Gemini 2.5 Flash…</p>
+                        <p class="vis-loading__sub">This takes 10–20 seconds</p>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Section 10: Email Summary -->
+            <section class="section hidden-until-pillar" id="section-email">
+                <div class="section__header">
+                    <div class="section__header-left">
+                        <span class="section__label">Section 10</span>
+                        <h2 class="section__title">Email Summary</h2>
+                    </div>
+                    <div class="section__header-right">
+                        <button class="export-btn" aria-label="Export as PDF" title="Export as PDF">
+                            <svg class="export-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2L12 8L18 10L12 12L10 18L8 12L2 10L8 8L10 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>PDF</span>
+                        </button>
+                        <button class="export-btn" aria-label="Export as PowerPoint" title="Export as PowerPoint">
+                            <svg class="export-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2L12 8L18 10L12 12L10 18L8 12L2 10L8 8L10 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>PPT</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="section__content">
+                    <!-- Email persona + tone controls (9.1 + 9.2) -->
+                    <div class="email-controls">
+                        <div class="email-controls__row">
+                            <div class="email-control-group">
+                                <label class="email-control-group__label">Send to persona:</label>
+                                <select id="email-persona-select" class="email-control-group__select">
+                                    <option value="">All contacts</option>
+                                    <option value="cio">Chief Information Officer</option>
+                                    <option value="vp-appdev">VP of Application Development</option>
+                                    <option value="ciso">Chief Information Security Officer</option>
+                                    <option value="netops">Director of Network Operations</option>
+                                    <option value="apm">Head of Application Performance</option>
+                                </select>
+                            </div>
+                            <div class="email-control-group">
+                                <label class="email-control-group__label">Tone:</label>
+                                <select id="email-tone-select" class="email-control-group__select">
+                                    <option value="consultative">Consultative</option>
+                                    <option value="executive">Executive brief</option>
+                                    <option value="technical">Technical deep-dive</option>
+                                </select>
+                            </div>
+                            <div class="email-control-group">
+                                <label class="email-control-group__label">Length:</label>
+                                <select id="email-length-select" class="email-control-group__select">
+                                    <option value="medium">Half page</option>
+                                    <option value="short">3 sentences</option>
+                                    <option value="long">Full</option>
+                                </select>
+                            </div>
+                            <button class="btn btn--primary" id="regenerate-email-btn">
+                                <svg class="generate-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M8 2L9 6L13 7L9 8L8 12L7 8L3 7L7 6L8 2Z" fill="currentColor"/>
+                                </svg>
+                                Generate Email
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="email-composer">
+                        <div class="email-composer__preview">
+                            <div class="email-field">
+                                <label class="email-field__label">Subject:</label>
+                                <input type="text" class="email-field__input" id="email-subject-input" value="Strategic Insights for [Customer Name]" />
+                            </div>
+
+                            <div class="email-content" id="email-content-body">
+                                <p class="email-greeting">Dear <span class="contact-name-placeholder">[Contact Name]</span>,</p>
+                                
+                                <p>I've compiled key insights about <span class="customer-name-display">[Customer Name]</span>'s strategic priorities and technology initiatives that I thought would be valuable to share:</p>
+                                
+                                <div class="email-section">
+                                    <h4 class="email-section__title">Strategic Priorities:</h4>
+                                    <ul class="email-list">
+                                        <li>Digital transformation and cloud migration initiatives</li>
+                                        <li>Investment in AI and automation technologies</li>
+                                        <li>Cybersecurity enhancement and zero-trust implementation</li>
+                                    </ul>
+                                </div>
+
+                                <div class="email-section">
+                                    <h4 class="email-section__title">Recent Developments:</h4>
+                                    <ul class="email-list">
+                                        <li>Major cloud migration initiative announced (TechCrunch, 2h ago)</li>
+                                        <li>$500M investment in AI and automation (Reuters, 5h ago)</li>
+                                        <li>Strategic partnership for cybersecurity (Bloomberg, 1d ago)</li>
+                                    </ul>
+                                </div>
+
+                                <p>I'd love to discuss how we can support your initiatives in application modernization, cybersecurity, and digital transformation.</p>
+
+                                <p class="email-closing">Best regards,<br><span class="user-name-placeholder">[Your Name]</span></p>
+                            </div>
+                        </div>
+
+                        <div class="email-composer__actions">
+                            <button class="btn btn--secondary" id="edit-email-btn">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M2 6L8 2L14 6M2 6V14H14V6M2 6L8 10L14 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Edit Email
+                            </button>
+                            <button class="btn btn--secondary" id="email-insert-diagram-btn" title="Insert the diagram generated in Section 9 into this email">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <rect x="2" y="2" width="12" height="9" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M2 8l3-3 3 3 2-2 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Insert Diagram
+                            </button>
+                            <button class="btn btn--primary" id="send-email-btn">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M2 2H14V12H8L4 14V12H2V2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Send via Outlook
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="source-filter">
+                        <span class="source-filter__label">Sources:</span>
+                        <span class="source-filter__count">All sections combined</span>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer__text">Prospecting Board © 2026 • All data sourced from public internet sources</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.min.js"></script>
+    
+    <!-- Application JavaScript -->
+    <!-- Local API keys — copy js/api-keys.local.js.example to js/api-keys.local.js and fill in your keys -->
+    <script src="js/api-keys.local.js"></script>
+    <script src="js/research-api.js?v=4.1"></script>
+    <script src="js/ibm-docs-integration.js?v=4.1"></script>
+    <script src="js/opportunities.js?v=20260722b"></script>
+    <script src="js/product-research.js?v=4.1"></script>
+    <script src="js/competitive-intelligence.js?v=20260722"></script>
+    <script src="js/account-memory.js?v=20260722b"></script>
+    <script src="js/app.js?v=20260722o"></script>
+    <script src="js/linkedin-search.js?v=20260722"></script>
+</body>
+</html>

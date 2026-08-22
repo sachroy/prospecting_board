@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Environment variables — real secrets, use .env.example as template
+backend/.env
+backend/.env.production
+backend/.env.local
+
+# Build output
+backend/dist/
+backend/build/
+
+# Logs
+backend/logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Prisma local DB
+backend/prisma/*.db
+backend/prisma/*.db-journal
+
+# Temp / debug pages
+debug-storage.html
+test-debug.html
+test-sources.html
+
+# Local API keys — contains live secrets, never commit
+js/api-keys.local.js

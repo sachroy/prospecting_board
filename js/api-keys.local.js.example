@@ -1,0 +1,19 @@
+/**
+ * api-keys.local.js — LOCAL ONLY, never committed to git.
+ *
+ * SETUP:
+ *   1. Copy this file:  cp js/api-keys.local.js.example js/api-keys.local.js
+ *   2. Fill in your own API keys below
+ *   3. Make sure index.html loads this script BEFORE research-api.js (already done)
+ *
+ * Where to get keys:
+ *   SERPER_API_KEY  — https://serper.dev          (2,500 free searches/month)
+ *   OPENAI_API_KEY  — https://platform.openai.com  (GPT-4o-mini, pay-as-you-go)
+ *   GEMINI_API_KEY  — https://aistudio.google.com  (diagram generation)
+ */
+window.__API_KEYS__ = {
+  SERPER_API_KEY:  'your-serper-api-key-here',
+  OPENAI_API_KEY:  'sk-proj-your-openai-key-here',
+  GEMINI_API_KEY:  'your-gemini-api-key-here',
+  NEWS_API_KEY:    'your-newsapi-key-here'   // free at https://newsapi.org
+};

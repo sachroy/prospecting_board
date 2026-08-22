@@ -1,0 +1,533 @@
+/**
+ * Responsive Styles
+ * Prospecting Board - Media queries for all devices
+ */
+
+/* ============================================
+   LARGE DESKTOP (1400px+)
+   ============================================ */
+
+@media (min-width: 1400px) {
+  .container {
+    padding-left: var(--space-4xl);
+    padding-right: var(--space-4xl);
+  }
+  
+  .section {
+    padding: var(--space-3xl);
+  }
+  
+  /* Two-column layout for headlines on large screens */
+  #section-headlines .headlines-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-xl);
+  }
+}
+
+/* ============================================
+   DESKTOP (1024px - 1399px)
+   ============================================ */
+
+@media (min-width: 1024px) and (max-width: 1399px) {
+  .section {
+    padding: var(--space-2xl);
+  }
+}
+
+/* ============================================
+   TABLET (768px - 1023px)
+   ============================================ */
+
+@media (max-width: 1023px) {
+  /* Header adjustments */
+  .header {
+    padding: var(--space-2xl) 0 var(--space-xl);
+  }
+  
+  .header__title {
+    font-size: var(--font-size-3xl);
+  }
+  
+  .header__greeting {
+    font-size: var(--font-size-lg);
+  }
+  
+  /* Dashboard spacing */
+  .dashboard {
+    padding: var(--space-2xl) 0;
+  }
+  
+  /* Section adjustments */
+  .section {
+    padding: var(--space-xl);
+    margin-bottom: var(--space-2xl);
+  }
+  
+  .section__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-md);
+  }
+  
+  .section__header-right {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .section__title {
+    font-size: var(--font-size-xl);
+  }
+  
+  /* Form elements */
+  .form-input,
+  .form-select {
+    font-size: var(--font-size-md);
+  }
+  
+  /* Question cards */
+  .question-card {
+    padding: var(--space-md);
+  }
+  
+  .question-card__question {
+    font-size: var(--font-size-md);
+  }
+  
+  /* Headline cards */
+  .headline-card {
+    padding: var(--space-md);
+  }
+  
+  .headline-card__title {
+    font-size: var(--font-size-md);
+  }
+  
+  /* Contact cards */
+  .contact-card {
+    padding: var(--space-md);
+  }
+  
+  .contact-card__name {
+    font-size: var(--font-size-lg);
+  }
+  
+  /* Email composer */
+  .email-composer__preview {
+    padding: var(--space-lg);
+  }
+  
+  .email-composer__actions {
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+  
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ============================================
+   MOBILE (480px - 767px)
+   ============================================ */
+
+@media (max-width: 767px) {
+  /* Container */
+  .container {
+    padding-left: var(--space-md);
+    padding-right: var(--space-md);
+  }
+  
+  /* Header */
+  .header {
+    padding: var(--space-xl) 0 var(--space-lg);
+  }
+  
+  .header__title {
+    font-size: var(--font-size-2xl);
+  }
+  
+  .header__greeting {
+    font-size: var(--font-size-md);
+  }
+  
+  /* Dashboard */
+  .dashboard {
+    padding: var(--space-xl) 0;
+  }
+  
+  /* Sections */
+  .section {
+    padding: var(--space-lg);
+    margin-bottom: var(--space-xl);
+    border-radius: var(--radius-md);
+  }
+  
+  .section__header {
+    margin-bottom: var(--space-lg);
+    padding-bottom: var(--space-md);
+  }
+  
+  .section__label {
+    font-size: 0.625rem;
+  }
+  
+  .section__title {
+    font-size: var(--font-size-lg);
+  }
+  
+  .section__subtitle {
+    font-size: var(--font-size-sm);
+  }
+  
+  /* Export buttons - stack on mobile */
+  .section__header-right {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .export-btn {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: 0.75rem;
+  }
+  
+  .export-icon {
+    width: 14px;
+    height: 14px;
+  }
+  
+  /* Subsections */
+  .subsection {
+    margin-bottom: var(--space-xl);
+  }
+  
+  .subsection__title {
+    font-size: var(--font-size-md);
+    margin-bottom: var(--space-md);
+  }
+  
+  /* Question cards */
+  .question-card {
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+  
+  .question-card__header {
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+  
+  .question-card__number {
+    font-size: 0.75rem;
+  }
+  
+  .question-card__question {
+    font-size: var(--font-size-base);
+  }
+  
+  .generate-btn {
+    width: 100%;
+    justify-content: center;
+    padding: var(--space-sm) var(--space-md);
+  }
+  
+  .response-field {
+    font-size: var(--font-size-sm);
+  }
+  
+  /* AI suggestions */
+  .ai-suggestions {
+    padding: var(--space-sm);
+  }
+  
+  .ai-suggestion {
+    font-size: 0.8125rem;
+  }
+  
+  /* Headline cards */
+  .headline-card {
+    padding: var(--space-md);
+  }
+  
+  .headline-card__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-xs);
+  }
+  
+  .headline-card__meta {
+    font-size: 0.625rem;
+  }
+  
+  .headline-card__title {
+    font-size: var(--font-size-base);
+    padding-right: 0;
+  }
+  
+  .headline-card__link {
+    position: static;
+    margin-top: var(--space-md);
+    width: auto;
+    height: auto;
+    padding: var(--space-xs) var(--space-md);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-bg-secondary);
+  }
+  
+  /* Contact cards */
+  .contact-card {
+    padding: var(--space-md);
+  }
+  
+  .contact-card__role {
+    font-size: 0.625rem;
+  }
+  
+  .contact-card__name {
+    font-size: var(--font-size-md);
+  }
+  
+  .contact-card__details {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-xs);
+  }
+  
+  .contact-card__separator {
+    display: none;
+  }
+  
+  .contact-card__focus {
+    font-size: 0.8125rem;
+  }
+  
+  /* Email composer */
+  .email-composer__preview {
+    padding: var(--space-md);
+  }
+  
+  .email-field {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-xs);
+  }
+  
+  .email-field__input {
+    width: 100%;
+  }
+  
+  .email-content {
+    font-size: var(--font-size-sm);
+  }
+  
+  .email-section__title {
+    font-size: var(--font-size-sm);
+  }
+  
+  .email-list li {
+    font-size: var(--font-size-sm);
+  }
+  
+  .email-composer__actions {
+    padding: var(--space-md);
+  }
+  
+  /* Source filter */
+  .source-filter {
+    flex-wrap: wrap;
+    font-size: 0.8125rem;
+  }
+  
+  .source-filter__select {
+    width: 100%;
+    margin-top: var(--space-xs);
+  }
+  
+  /* Footer */
+  .footer {
+    padding: var(--space-2xl) 0;
+  }
+  
+  .footer__text {
+    font-size: 0.75rem;
+  }
+}
+
+/* ============================================
+   SMALL MOBILE (< 480px)
+   ============================================ */
+
+@media (max-width: 479px) {
+  /* Even more compact spacing */
+  .section {
+    padding: var(--space-md);
+  }
+  
+  .section__header {
+    margin-bottom: var(--space-md);
+  }
+  
+  .section__title {
+    font-size: var(--font-size-md);
+  }
+  
+  .header__title {
+    font-size: var(--font-size-xl);
+  }
+  
+  .question-card,
+  .headline-card,
+  .contact-card {
+    padding: var(--space-sm);
+  }
+  
+  .email-composer__preview {
+    padding: var(--space-sm);
+  }
+  
+  /* Buttons full width */
+  .export-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+/* ============================================
+   TOUCH DEVICE OPTIMIZATIONS
+   ============================================ */
+
+@media (hover: none) and (pointer: coarse) {
+  /* Increase touch targets */
+  .export-btn,
+  .generate-btn,
+  .btn {
+    min-height: 44px;
+  }
+  
+  .form-input,
+  .form-select {
+    min-height: 44px;
+  }
+  
+  .ai-suggestion {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  
+  /* Remove hover effects on touch devices */
+  .section:hover {
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .headline-card:hover {
+    transform: none;
+  }
+  
+  .export-btn:hover,
+  .generate-btn:hover {
+    transform: none;
+  }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+
+@media print {
+  body {
+    background-color: white;
+  }
+  
+  .header,
+  .footer {
+    display: none;
+  }
+  
+  .section {
+    page-break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid var(--color-border-light);
+  }
+  
+  .export-btn,
+  .generate-btn,
+  .btn {
+    display: none;
+  }
+  
+  .section__header-right {
+    display: none;
+  }
+  
+  a {
+    text-decoration: underline;
+  }
+  
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: var(--color-text-tertiary);
+  }
+}
+
+/* ============================================
+   LANDSCAPE ORIENTATION (Mobile)
+   ============================================ */
+
+@media (max-width: 767px) and (orientation: landscape) {
+  .header {
+    padding: var(--space-lg) 0 var(--space-md);
+  }
+  
+  .dashboard {
+    padding: var(--space-lg) 0;
+  }
+  
+  .section {
+    margin-bottom: var(--space-lg);
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .headline-card {
+    animation: none;
+  }
+}
+
+/* ============================================
+   HIGH CONTRAST MODE
+   ============================================ */
+
+@media (prefers-contrast: high) {
+  .section {
+    border: 2px solid var(--color-border-dark);
+  }
+  
+  .form-input,
+  .form-select,
+  .question-card,
+  .headline-card,
+  .contact-card {
+    border-width: 2px;
+  }
+  
+  .export-btn,
+  .generate-btn {
+    border-width: 2px;
+  }
+}
+
+/* Made with Bob */
