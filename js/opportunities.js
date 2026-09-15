@@ -271,6 +271,84 @@
     }
   };
 
+  // ─── Pillar → guaranteed need types + core products ─────────────────────────
+  // When a seller selects (or has researched) a pillar, these need types are
+  // always surfaced in Section 4 — regardless of keyword frequency in the text.
+  // Sub-areas within infrastructure-automation each have their own entry so
+  // IAM, Network, and Infrastructure produce distinct, focused recommendations.
+  const PILLAR_PRODUCT_MAP = {
+    'application-modernization': [
+      {
+        type: 'app-dev',
+        description: 'Application development & modernization',
+        keywords: ['java', 'microservices', 'api', 'devops', 'cloud', 'modernization'],
+        coreProducts: ['webMethods IWHI', 'API Connect', 'Event Automation', 'MQ', 'CP4I'],
+        needLabel: 'Application Development & Integration',
+        pillarContext: 'application modernization and cloud-native development'
+      },
+      {
+        type: 'integration',
+        description: 'Hybrid integration and API management',
+        keywords: ['integration', 'api', 'hybrid', 'b2b', 'messaging', 'middleware'],
+        coreProducts: ['API Connect', 'webMethods IWHI', 'DataPower', 'MQ'],
+        needLabel: 'Hybrid Integration & API Management',
+        pillarContext: 'hybrid integration, API lifecycle, and middleware modernization'
+      }
+    ],
+    'infrastructure-automation': [
+      {
+        type: 'automation',
+        description: 'Infrastructure lifecycle automation',
+        keywords: ['infrastructure', 'terraform', 'iac', 'provisioning', 'automation', 'devops'],
+        coreProducts: ['Terraform', 'Consul', 'UrbanCode', 'Workload Automation'],
+        needLabel: 'Infrastructure Lifecycle Management',
+        pillarContext: 'infrastructure as code, provisioning automation, and deployment pipelines'
+      },
+      {
+        type: 'security',
+        description: 'Identity & access management',
+        keywords: ['identity', 'access', 'iam', 'zero-trust', 'secrets', 'authentication', 'mfa'],
+        coreProducts: ['Verify', 'Vault', 'Consul', 'Trusteer'],
+        needLabel: 'Identity & Access Management',
+        pillarContext: 'zero-trust identity governance, secrets management, and access controls'
+      },
+      {
+        type: 'network',
+        description: 'Network automation & performance management',
+        keywords: ['network', 'dns', 'traffic', 'ddos', 'sdn', 'automation', 'performance'],
+        coreProducts: ['SevOne', 'NS1', 'DataPower'],
+        needLabel: 'Network Management & Automation',
+        pillarContext: 'network performance monitoring, DNS intelligence, and traffic management'
+      }
+    ],
+    'technology-business-management': [
+      {
+        type: 'observability',
+        description: 'IT operations & application performance management',
+        keywords: ['monitoring', 'observability', 'apm', 'aiops', 'performance', 'incident'],
+        coreProducts: ['Instana', 'Turbonomic', 'Concert', 'CP4AIOps'],
+        needLabel: 'IT Operations & AIOps',
+        pillarContext: 'AI-powered IT operations, application performance, and cost optimization'
+      },
+      {
+        type: 'cloud-optimization',
+        description: 'Technology business management & FinOps',
+        keywords: ['cost', 'finops', 'optimization', 'budgeting', 'cloud spend', 'resource'],
+        coreProducts: ['ApptioOne', 'Cloudability', 'Turbonomic'],
+        needLabel: 'FinOps & Technology Business Management',
+        pillarContext: 'IT financial management, cloud cost visibility, and FinOps'
+      }
+    ]
+  };
+
+  // ─── Pillar business case framing ─────────────────────────────────────────
+  // Used to frame AI prompts and value estimates in the language of each pillar.
+  const PILLAR_BUSINESS_CASE = {
+    'application-modernization':     'accelerating digital transformation, reducing technical debt, and improving developer productivity',
+    'infrastructure-automation':     'reducing manual operational effort, improving compliance posture, and eliminating security blind spots',
+    'technology-business-management':'gaining visibility into IT spend, optimising cloud costs, and improving service reliability'
+  };
+
   // State management
   let opportunities = [];
   let customerData = {};
@@ -429,6 +507,34 @@
   }
 
   /**
+   * Return the set of pillars that are relevant for this account:
+   * - The currently active pillar (if selected)
+   * - Any pillars previously researched (from AccountMemory pillarCoverage)
+   * Returns an array of pillar slug strings, deduplicated.
+   */
+  function getActivePillars(customerName) {
+    const pillars = new Set();
+
+    // Currently selected pillar in the UI
+    const activePill = document.querySelector('.pillar-pill.active');
+    if (activePill && activePill.dataset.pillar) {
+      pillars.add(activePill.dataset.pillar);
+    }
+
+    // Previously researched pillars from AccountMemory
+    if (window.AccountMemory && customerName) {
+      const account = window.AccountMemory.getAccount(customerName);
+      if (account && account.pillarCoverage) {
+        Object.entries(account.pillarCoverage).forEach(([pillar, data]) => {
+          if (data.count > 0) pillars.add(pillar);
+        });
+      }
+    }
+
+    return Array.from(pillars);
+  }
+
+  /**
    * Extract customer data from Section 1 and Section 2
    */
   function extractCustomerData() {
@@ -464,6 +570,12 @@
       console.log('[Opportunities] Company signals detected:', data.signals.rawSignals);
     }
 
+    // Capture active + previously researched pillars
+    data.activePillars = getActivePillars(data.customerName);
+    if (data.activePillars.length) {
+      console.log('[Opportunities] Active pillars:', data.activePillars);
+    }
+
     return data;
   }
 
@@ -472,10 +584,38 @@
    */
   async function analyzeAndGenerateOpportunities(data) {
     const opportunities = [];
-    
-    // Analyze each response and extract needs/challenges
-    const needs = extractNeedsFromResponses(data.responses);
-    
+
+    // ── Step 1: Pillar-guaranteed needs ──────────────────────────────────────
+    // For each active/researched pillar, inject its need types explicitly.
+    // These are seeded first so pillar-specific products always appear,
+    // regardless of keyword frequency in the research text.
+    const pillarNeeds = [];
+    const seenNeedTypes = new Set();
+
+    (data.activePillars || []).forEach(pillarSlug => {
+      const pillarEntries = PILLAR_PRODUCT_MAP[pillarSlug] || [];
+      pillarEntries.forEach(entry => {
+        if (!seenNeedTypes.has(entry.type)) {
+          pillarNeeds.push({
+            ...entry,
+            fromPillar: pillarSlug,
+            isPillarGuaranteed: true
+          });
+          seenNeedTypes.add(entry.type);
+        }
+      });
+    });
+
+    // ── Step 2: Keyword-derived needs from research text ─────────────────────
+    // Add any additional needs surfaced by the research that aren't already
+    // covered by the pillar-guaranteed set.
+    const keywordNeeds = extractNeedsFromResponses(data.responses).filter(
+      n => !seenNeedTypes.has(n.type)
+    );
+
+    const needs = [...pillarNeeds, ...keywordNeeds];
+    console.log(`[Opportunities] ${pillarNeeds.length} pillar-guaranteed + ${keywordNeeds.length} keyword-derived needs`);
+
     // For each identified need, fetch real IBM product data and generate recommendations
     for (const need of needs) {
       try {
@@ -550,9 +690,18 @@
           ? `Known company signals: ${sig.rawSignals.join(', ')}.`
           : `No explicit financial signals found; use ${customerData.industry || 'industry'} benchmarks (avg revenue ~$${bench.avgRevB}B, IT spend ~${Math.round(bench.itSpendPct * 100)}% of revenue, avg breach cost ~$${bench.breachCostM}M).`;
 
+        // Pillar context — frames the solution in the seller's chosen focus area
+        const pillarBusinessCase = need.fromPillar
+          ? PILLAR_BUSINESS_CASE[need.fromPillar] || ''
+          : '';
+        const pillarFraming = pillarBusinessCase
+          ? `The seller has identified "${need.needLabel || need.description}" as a priority focus area for this account, specifically around ${pillarBusinessCase}. Frame the solution and value in this context.`
+          : '';
+
         const analysisPrompt = `You are an IBM solutions value consultant. Analyse these IBM products (${productsStr}) for a ${customerData.industry} industry customer named "${customerData.customerName}" with this need: "${need.description}".
 
 ${sigContext}
+${pillarFraming}
 
 Search Results:
 ${context}
@@ -846,12 +995,21 @@ Return ONLY valid JSON:
   }
 
   /**
-   * Find IBM products that match the need
+   * Find IBM products that match the need.
+   * For pillar-guaranteed needs, coreProducts are always included first;
+   * keyword scoring then adds any relevant complementary products.
    */
   function findMatchingProducts(need) {
     const matches = [];
     const scores = [];
-    
+
+    // Seed with pillar core products first (guaranteed relevance)
+    if (need.coreProducts && need.coreProducts.length) {
+      need.coreProducts.forEach(p => {
+        if (IBM_PRODUCTS[p] && !matches.includes(p)) matches.push(p);
+      });
+    }
+
     // Score each product based on keyword matches
     Object.entries(IBM_PRODUCTS).forEach(([productName, product]) => {
       let score = 0;
@@ -875,12 +1033,10 @@ Return ONLY valid JSON:
     
     // Sort by score and take top matches
     scores.sort((a, b) => b.score - a.score);
-    
-    // Take 1-3 products based on scores and synergies
-    const topProducts = scores.slice(0, 3);
-    
-    topProducts.forEach(item => {
-      matches.push(item.productName);
+
+    // Add top keyword-scored products not already in matches (from coreProducts)
+    scores.slice(0, 4).forEach(item => {
+      if (!matches.includes(item.productName)) matches.push(item.productName);
     });
     
     // Check for synergies and add complementary products
