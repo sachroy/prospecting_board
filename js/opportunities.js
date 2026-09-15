@@ -952,40 +952,46 @@ Return ONLY valid JSON:
   // avgRevB      : typical mid-large enterprise revenue in $B for the vertical
   // breachCostM  : average cost of a data breach in $M (Ponemon 2024)
   // devHeadcount : typical dev/IT headcount as % of total employees
+  // avgRevB = MEDIAN mid-market enterprise revenue for the vertical (not Fortune 500 scale).
+  // This produces realistic values for companies like JC Penney (~$3.5B), not Walmart ($600B).
+  // Sources: Gartner IT Key Metrics 2024, Ponemon Cost of a Data Breach 2024.
   const INDUSTRY_BENCHMARKS = {
-    'banking':              { itSpendPct: 0.085, avgRevB: 12,  breachCostM: 6.1,  devHeadcount: 0.12 },
-    'insurance':            { itSpendPct: 0.040, avgRevB: 8,   breachCostM: 5.9,  devHeadcount: 0.09 },
-    'healthcare':           { itSpendPct: 0.045, avgRevB: 6,   breachCostM: 9.8,  devHeadcount: 0.07 },
-    'retail':               { itSpendPct: 0.022, avgRevB: 18,  breachCostM: 3.5,  devHeadcount: 0.05 },
-    'manufacturing':        { itSpendPct: 0.028, avgRevB: 10,  breachCostM: 5.6,  devHeadcount: 0.06 },
-    'telecom':              { itSpendPct: 0.055, avgRevB: 15,  breachCostM: 4.8,  devHeadcount: 0.10 },
-    'energy':               { itSpendPct: 0.032, avgRevB: 20,  breachCostM: 5.3,  devHeadcount: 0.06 },
-    'transportation':       { itSpendPct: 0.030, avgRevB: 8,   breachCostM: 4.2,  devHeadcount: 0.06 },
-    'federal':              { itSpendPct: 0.060, avgRevB: 5,   breachCostM: 8.7,  devHeadcount: 0.10 },
-    'public':               { itSpendPct: 0.050, avgRevB: 4,   breachCostM: 7.5,  devHeadcount: 0.09 },
-    'information-technology': { itSpendPct: 0.090, avgRevB: 5, breachCostM: 5.1,  devHeadcount: 0.35 },
-    'semiconductor':        { itSpendPct: 0.075, avgRevB: 8,   breachCostM: 5.4,  devHeadcount: 0.25 },
-    'aerospace':            { itSpendPct: 0.038, avgRevB: 12,  breachCostM: 5.6,  devHeadcount: 0.08 },
-    'environment-sustainability': { itSpendPct: 0.030, avgRevB: 3, breachCostM: 4.0, devHeadcount: 0.08 },
+    'banking':              { itSpendPct: 0.075, avgRevB: 4.0,  breachCostM: 6.1,  devHeadcount: 0.12 },
+    'insurance':            { itSpendPct: 0.038, avgRevB: 3.0,  breachCostM: 5.9,  devHeadcount: 0.09 },
+    'healthcare':           { itSpendPct: 0.042, avgRevB: 2.5,  breachCostM: 9.8,  devHeadcount: 0.07 },
+    'retail':               { itSpendPct: 0.020, avgRevB: 4.0,  breachCostM: 3.5,  devHeadcount: 0.05 },
+    'manufacturing':        { itSpendPct: 0.026, avgRevB: 3.5,  breachCostM: 5.6,  devHeadcount: 0.06 },
+    'telecom':              { itSpendPct: 0.050, avgRevB: 5.0,  breachCostM: 4.8,  devHeadcount: 0.10 },
+    'energy':               { itSpendPct: 0.028, avgRevB: 5.0,  breachCostM: 5.3,  devHeadcount: 0.06 },
+    'transportation':       { itSpendPct: 0.028, avgRevB: 3.5,  breachCostM: 4.2,  devHeadcount: 0.06 },
+    'federal':              { itSpendPct: 0.055, avgRevB: 2.0,  breachCostM: 8.7,  devHeadcount: 0.10 },
+    'public':               { itSpendPct: 0.045, avgRevB: 1.5,  breachCostM: 7.5,  devHeadcount: 0.09 },
+    'information-technology': { itSpendPct: 0.080, avgRevB: 2.0, breachCostM: 5.1, devHeadcount: 0.35 },
+    'semiconductor':        { itSpendPct: 0.070, avgRevB: 3.0,  breachCostM: 5.4,  devHeadcount: 0.25 },
+    'aerospace':            { itSpendPct: 0.035, avgRevB: 4.0,  breachCostM: 5.6,  devHeadcount: 0.08 },
+    'environment-sustainability': { itSpendPct: 0.028, avgRevB: 1.5, breachCostM: 4.0, devHeadcount: 0.08 },
     // default fallback
-    '_default':             { itSpendPct: 0.040, avgRevB: 8,   breachCostM: 5.0,  devHeadcount: 0.08 }
+    '_default':             { itSpendPct: 0.035, avgRevB: 3.0,  breachCostM: 5.0,  devHeadcount: 0.08 }
   };
 
   // Multipliers: what % of IT spend each opportunity type typically captures
   // and efficiency gain ranges (lo/hi) used to scale dollar value.
+  // itSpendShare = the addressable slice of IT budget for this opportunity type.
+  // Calibrated to produce realistic IBM mid-market deal value ranges ($500K–$8M).
+  // effLo/effHi = efficiency gain applied to that addressable spend.
   const OPPORTUNITY_MULTIPLIERS = {
-    'transformation':    { itSpendShare: 0.18, effLo: 0.25, effHi: 0.35, basis: 'itSpend' },
-    'app-dev':           { itSpendShare: 0.12, effLo: 0.30, effHi: 0.40, basis: 'itSpend' },
-    'integration':       { itSpendShare: 0.10, effLo: 0.40, effHi: 0.50, basis: 'itSpend' },
-    'security':          { itSpendShare: 0.00, effLo: 0.40, effHi: 0.60, basis: 'breach'  },
-    'observability':     { itSpendShare: 0.08, effLo: 0.35, effHi: 0.45, basis: 'itSpend' },
-    'cloud-optimization':{ itSpendShare: 0.20, effLo: 0.20, effHi: 0.30, basis: 'itSpend' },
-    'automation':        { itSpendShare: 0.10, effLo: 0.40, effHi: 0.60, basis: 'itSpend' },
-    'network':           { itSpendShare: 0.06, effLo: 0.30, effHi: 0.40, basis: 'itSpend' },
-    'asset':             { itSpendShare: 0.08, effLo: 0.25, effHi: 0.35, basis: 'itSpend' },
-    'ai':                { itSpendShare: 0.12, effLo: 0.30, effHi: 0.50, basis: 'itSpend' },
-    'supply-chain':      { itSpendShare: 0.08, effLo: 0.20, effHi: 0.30, basis: 'itSpend' },
-    '_default':          { itSpendShare: 0.08, effLo: 0.20, effHi: 0.30, basis: 'itSpend' }
+    'transformation':    { itSpendShare: 0.10, effLo: 0.20, effHi: 0.30, basis: 'itSpend' },
+    'app-dev':           { itSpendShare: 0.08, effLo: 0.25, effHi: 0.35, basis: 'itSpend' },
+    'integration':       { itSpendShare: 0.07, effLo: 0.30, effHi: 0.40, basis: 'itSpend' },
+    'security':          { itSpendShare: 0.00, effLo: 0.25, effHi: 0.40, basis: 'breach'  },
+    'observability':     { itSpendShare: 0.05, effLo: 0.30, effHi: 0.40, basis: 'itSpend' },
+    'cloud-optimization':{ itSpendShare: 0.12, effLo: 0.15, effHi: 0.25, basis: 'itSpend' },
+    'automation':        { itSpendShare: 0.07, effLo: 0.30, effHi: 0.45, basis: 'itSpend' },
+    'network':           { itSpendShare: 0.04, effLo: 0.25, effHi: 0.35, basis: 'itSpend' },
+    'asset':             { itSpendShare: 0.05, effLo: 0.20, effHi: 0.30, basis: 'itSpend' },
+    'ai':                { itSpendShare: 0.08, effLo: 0.25, effHi: 0.40, basis: 'itSpend' },
+    'supply-chain':      { itSpendShare: 0.05, effLo: 0.15, effHi: 0.25, basis: 'itSpend' },
+    '_default':          { itSpendShare: 0.05, effLo: 0.15, effHi: 0.25, basis: 'itSpend' }
   };
 
   /**
