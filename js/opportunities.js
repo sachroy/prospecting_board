@@ -445,20 +445,24 @@
     if (customerNameInput) data.customerName = customerNameInput.value.trim();
     if (industrySelect) data.industry = industrySelect.value;
 
-    // Get all responses from Section 2
-    const responseFields = document.querySelectorAll('#section-research .response-field');
+    // Get all responses from Section 2 and Section 3
+    const responseFields = document.querySelectorAll(
+      '#section-research .response-field, #section-automation-pillars .response-field'
+    );
     responseFields.forEach(field => {
       const questionCard = field.closest('.question-card');
       const question = questionCard?.querySelector('.question-card__question')?.textContent || '';
       const response = field.value.trim();
-      
       if (response) {
-        data.responses.push({
-          question: question,
-          response: response
-        });
+        data.responses.push({ question, response });
       }
     });
+
+    // Extract company signals (revenue, headcount, spend) from research text
+    data.signals = extractCompanySignals(data.responses);
+    if (data.signals.rawSignals.length) {
+      console.log('[Opportunities] Company signals detected:', data.signals.rawSignals);
+    }
 
     return data;
   }
@@ -516,7 +520,7 @@
       return {
         capabilities: generateKeyCapabilities(products),
         solution: generateSolutionDescription(need, products),
-        value: estimateValue(need, products, customerData.industry),
+        value: calcRealisticValue(need, products, customerData.industry, customerData.signals),
         sources: []
       };
     }
@@ -539,21 +543,27 @@
         const context = buildSearchContext(searchResults, products);
         
         // Generate AI analysis
-        const analysisPrompt = `Based on the following search results about IBM products (${productsStr}), provide a detailed analysis for a customer in the ${customerData.industry} industry with this need: "${need.description}".
+        // Build context from known company signals and industry benchmarks
+        const bench = INDUSTRY_BENCHMARKS[customerData.industry] || INDUSTRY_BENCHMARKS['_default'];
+        const sig   = customerData.signals || {};
+        const sigContext = sig.rawSignals && sig.rawSignals.length
+          ? `Known company signals: ${sig.rawSignals.join(', ')}.`
+          : `No explicit financial signals found; use ${customerData.industry || 'industry'} benchmarks (avg revenue ~$${bench.avgRevB}B, IT spend ~${Math.round(bench.itSpendPct * 100)}% of revenue, avg breach cost ~$${bench.breachCostM}M).`;
+
+        const analysisPrompt = `You are an IBM solutions value consultant. Analyse these IBM products (${productsStr}) for a ${customerData.industry} industry customer named "${customerData.customerName}" with this need: "${need.description}".
+
+${sigContext}
 
 Search Results:
 ${context}
 
-Please provide:
-1. Key Capabilities: List 4-5 specific capabilities of these IBM products
-2. Solution Description: Explain how these products address the customer's need (2-3 sentences)
-3. Value Estimate: Provide realistic ROI estimate with percentage improvement and dollar savings range
+Provide a realistic, specific value estimate grounded in the company signals or industry benchmarks above. Avoid generic ranges — if you know the company's revenue or IT spend, calculate from that. If not, use the benchmark figures provided.
 
-Format your response as JSON:
+Return ONLY valid JSON:
 {
-  "capabilities": ["capability1", "capability2", ...],
-  "solution": "detailed solution description",
-  "value": "X-Y% improvement, ~$A-BM annual savings/value"
+  "capabilities": ["capability1", "capability2", "capability3", "capability4"],
+  "solution": "2-3 sentence description of how these products address the specific need",
+  "value": "XX-XX% improvement, ~$X-XM annual savings/value (brief basis e.g. based on $XB revenue)"
 }`;
 
         const aiResponse = await window.ResearchAPI.generateAIResponse(analysisPrompt, context);
@@ -603,7 +613,7 @@ Format your response as JSON:
           return {
             capabilities: extractCapabilitiesFromText(ibmResponse.answer),
             solution: ibmResponse.answer,
-            value: estimateValue(need, products, customerData.industry),
+            value: calcRealisticValue(need, products, customerData.industry, customerData.signals),
             sources: ibmResponse.sources || []
           };
         }
@@ -617,7 +627,7 @@ Format your response as JSON:
     return {
       capabilities: generateKeyCapabilities(products),
       solution: generateSolutionDescription(need, products),
-      value: estimateValue(need, products, customerData.industry),
+      value: calcRealisticValue(need, products, customerData.industry, customerData.signals),
       sources: []
     };
   }
@@ -934,75 +944,177 @@ Format your response as JSON:
     return descriptions[need.type] || `Addresses ${need.description} through ${products.join(', ')} with comprehensive capabilities and proven enterprise-grade solutions.`;
   }
 
+  // ─── Industry benchmark data ─────────────────────────────────────────────
+  // Sources: Gartner IT Key Metrics, IBM Institute for Business Value,
+  //          Ponemon Cost of a Data Breach Report, McKinsey digital surveys.
+  //
+  // itSpendPct   : IT spend as % of revenue (Gartner industry averages)
+  // avgRevB      : typical mid-large enterprise revenue in $B for the vertical
+  // breachCostM  : average cost of a data breach in $M (Ponemon 2024)
+  // devHeadcount : typical dev/IT headcount as % of total employees
+  const INDUSTRY_BENCHMARKS = {
+    'banking':              { itSpendPct: 0.085, avgRevB: 12,  breachCostM: 6.1,  devHeadcount: 0.12 },
+    'insurance':            { itSpendPct: 0.040, avgRevB: 8,   breachCostM: 5.9,  devHeadcount: 0.09 },
+    'healthcare':           { itSpendPct: 0.045, avgRevB: 6,   breachCostM: 9.8,  devHeadcount: 0.07 },
+    'retail':               { itSpendPct: 0.022, avgRevB: 18,  breachCostM: 3.5,  devHeadcount: 0.05 },
+    'manufacturing':        { itSpendPct: 0.028, avgRevB: 10,  breachCostM: 5.6,  devHeadcount: 0.06 },
+    'telecom':              { itSpendPct: 0.055, avgRevB: 15,  breachCostM: 4.8,  devHeadcount: 0.10 },
+    'energy':               { itSpendPct: 0.032, avgRevB: 20,  breachCostM: 5.3,  devHeadcount: 0.06 },
+    'transportation':       { itSpendPct: 0.030, avgRevB: 8,   breachCostM: 4.2,  devHeadcount: 0.06 },
+    'federal':              { itSpendPct: 0.060, avgRevB: 5,   breachCostM: 8.7,  devHeadcount: 0.10 },
+    'public':               { itSpendPct: 0.050, avgRevB: 4,   breachCostM: 7.5,  devHeadcount: 0.09 },
+    'information-technology': { itSpendPct: 0.090, avgRevB: 5, breachCostM: 5.1,  devHeadcount: 0.35 },
+    'semiconductor':        { itSpendPct: 0.075, avgRevB: 8,   breachCostM: 5.4,  devHeadcount: 0.25 },
+    'aerospace':            { itSpendPct: 0.038, avgRevB: 12,  breachCostM: 5.6,  devHeadcount: 0.08 },
+    'environment-sustainability': { itSpendPct: 0.030, avgRevB: 3, breachCostM: 4.0, devHeadcount: 0.08 },
+    // default fallback
+    '_default':             { itSpendPct: 0.040, avgRevB: 8,   breachCostM: 5.0,  devHeadcount: 0.08 }
+  };
+
+  // Multipliers: what % of IT spend each opportunity type typically captures
+  // and efficiency gain ranges (lo/hi) used to scale dollar value.
+  const OPPORTUNITY_MULTIPLIERS = {
+    'transformation':    { itSpendShare: 0.18, effLo: 0.25, effHi: 0.35, basis: 'itSpend' },
+    'app-dev':           { itSpendShare: 0.12, effLo: 0.30, effHi: 0.40, basis: 'itSpend' },
+    'integration':       { itSpendShare: 0.10, effLo: 0.40, effHi: 0.50, basis: 'itSpend' },
+    'security':          { itSpendShare: 0.00, effLo: 0.40, effHi: 0.60, basis: 'breach'  },
+    'observability':     { itSpendShare: 0.08, effLo: 0.35, effHi: 0.45, basis: 'itSpend' },
+    'cloud-optimization':{ itSpendShare: 0.20, effLo: 0.20, effHi: 0.30, basis: 'itSpend' },
+    'automation':        { itSpendShare: 0.10, effLo: 0.40, effHi: 0.60, basis: 'itSpend' },
+    'network':           { itSpendShare: 0.06, effLo: 0.30, effHi: 0.40, basis: 'itSpend' },
+    'asset':             { itSpendShare: 0.08, effLo: 0.25, effHi: 0.35, basis: 'itSpend' },
+    'ai':                { itSpendShare: 0.12, effLo: 0.30, effHi: 0.50, basis: 'itSpend' },
+    'supply-chain':      { itSpendShare: 0.08, effLo: 0.20, effHi: 0.30, basis: 'itSpend' },
+    '_default':          { itSpendShare: 0.08, effLo: 0.20, effHi: 0.30, basis: 'itSpend' }
+  };
+
   /**
-   * Estimate value and ROI
+   * Mine the Section 2/3 AI research responses for explicit company signals:
+   * revenue, headcount, IT/cloud spend, and any dollar amounts mentioned.
+   * Returns { revenueB, employeeCount, itSpendM, cloudSpendM, rawSignals[] }
    */
-  function estimateValue(need, products, industry) {
-    const valueEstimates = {
-      'transformation': {
-        efficiency: '25-35%',
-        savings: '$3-7M',
-        description: 'efficiency improvement in development and operations, ~$3-7M annual savings through modernization'
-      },
-      'app-dev': {
-        efficiency: '30-40%',
-        savings: '$2-5M',
-        description: 'faster time-to-market, ~$2-5M annual savings through improved development efficiency'
-      },
-      'integration': {
-        efficiency: '40-50%',
-        savings: '$2-4M',
-        description: 'reduction in integration complexity, ~$2-4M annual savings through automation'
-      },
-      'security': {
-        efficiency: '50-60%',
-        savings: '$5-10M',
-        description: 'reduction in security incidents, ~$5-10M risk mitigation value'
-      },
-      'observability': {
-        efficiency: '35-45%',
-        savings: '$1-3M',
-        description: 'reduction in MTTR, ~$1-3M annual savings through improved reliability'
-      },
-      'cloud-optimization': {
-        efficiency: '20-30%',
-        savings: '$2-6M',
-        description: 'cloud cost reduction, ~$2-6M annual savings based on current spend'
-      },
-      'automation': {
-        efficiency: '40-60%',
-        savings: '$1-4M',
-        description: 'reduction in manual effort, ~$1-4M annual savings through automation'
-      },
-      'network': {
-        efficiency: '30-40%',
-        savings: '$1-2M',
-        description: 'improvement in network performance, ~$1-2M annual savings'
-      },
-      'asset': {
-        efficiency: '25-35%',
-        savings: '$2-5M',
-        description: 'improvement in asset utilization, ~$2-5M annual savings'
-      },
-      'ai': {
-        efficiency: '30-50%',
-        savings: '$3-8M',
-        description: 'productivity improvement through AI, ~$3-8M value creation'
-      },
-      'supply-chain': {
-        efficiency: '20-30%',
-        savings: '$2-4M',
-        description: 'improvement in fulfillment efficiency, ~$2-4M annual savings'
+  function extractCompanySignals(responses) {
+    const signals = { revenueB: null, employeeCount: null, itSpendM: null, cloudSpendM: null, rawSignals: [] };
+    const fullText = responses.map(r => r.response || '').join(' ');
+
+    // Revenue — match "$XB", "$X billion", "$X.YB", "revenue of $X"
+    const revPatterns = [
+      /\$(\d+(?:\.\d+)?)\s*billion/gi,
+      /\$(\d+(?:\.\d+)?)B/g,
+      /revenue[^\d]{0,20}\$(\d+(?:\.\d+)?)\s*B/gi,
+      /revenue[^\d]{0,30}(\d+(?:\.\d+)?)\s*billion/gi,
+    ];
+    for (const p of revPatterns) {
+      const m = p.exec(fullText);
+      if (m && !signals.revenueB) {
+        signals.revenueB = parseFloat(m[1]);
+        signals.rawSignals.push(`revenue ~$${signals.revenueB}B`);
+        break;
       }
-    };
-    
-    const estimate = valueEstimates[need.type] || {
-      efficiency: '20-30%',
-      savings: '$1-3M',
-      description: 'operational improvement, ~$1-3M estimated annual value'
-    };
-    
-    return estimate.description;
+    }
+
+    // Headcount — "X,000 employees", "workforce of X"
+    const headPatterns = [
+      /(\d{1,3}(?:,\d{3})+)\s+employees/gi,
+      /workforce[^\d]{0,20}(\d{1,3}(?:,\d{3})+)/gi,
+      /(\d+(?:\.\d+)?)\s*thousand\s+employees/gi,
+    ];
+    for (const p of headPatterns) {
+      const m = p.exec(fullText);
+      if (m && !signals.employeeCount) {
+        signals.employeeCount = parseInt(m[1].replace(/,/g, ''));
+        signals.rawSignals.push(`~${signals.employeeCount.toLocaleString()} employees`);
+        break;
+      }
+    }
+
+    // IT / cloud spend
+    const itPatterns = [
+      /IT\s+spend[^\d]{0,20}\$(\d+(?:\.\d+)?)\s*[MB]/gi,
+      /cloud\s+spend[^\d]{0,20}\$(\d+(?:\.\d+)?)\s*[MB]/gi,
+      /technology\s+budget[^\d]{0,20}\$(\d+(?:\.\d+)?)\s*[MB]/gi,
+    ];
+    for (const p of itPatterns) {
+      const m = p.exec(fullText);
+      if (m && !signals.itSpendM) {
+        const unit = m[0].match(/\$[\d.]+\s*([MB])/i)?.[1]?.toUpperCase();
+        signals.itSpendM = unit === 'B' ? parseFloat(m[1]) * 1000 : parseFloat(m[1]);
+        signals.rawSignals.push(`IT/cloud spend ~$${signals.itSpendM}M`);
+        break;
+      }
+    }
+
+    return signals;
+  }
+
+  /**
+   * Calculate a realistic value range using:
+   *   1. Signals extracted from research responses (revenue, headcount, IT spend)
+   *   2. Industry benchmarks when signals aren't available
+   *   3. Opportunity-type multipliers calibrated to IBM deal patterns
+   *
+   * Returns a human-readable string e.g. "~$4-8M annual savings"
+   */
+  function calcRealisticValue(need, products, industry, signals) {
+    const bench = INDUSTRY_BENCHMARKS[industry] || INDUSTRY_BENCHMARKS['_default'];
+    const mult  = OPPORTUNITY_MULTIPLIERS[need.type] || OPPORTUNITY_MULTIPLIERS['_default'];
+
+    // ── Derive IT spend in $M ──────────────────────────────────────────────
+    let itSpendM;
+    if (signals && signals.itSpendM) {
+      itSpendM = signals.itSpendM;                          // explicit from research
+    } else if (signals && signals.revenueB) {
+      itSpendM = signals.revenueB * 1000 * bench.itSpendPct; // revenue × benchmark %
+    } else {
+      itSpendM = bench.avgRevB * 1000 * bench.itSpendPct;   // pure benchmark
+    }
+
+    // ── Calculate value range ─────────────────────────────────────────────
+    let loM, hiM;
+
+    if (mult.basis === 'breach') {
+      // Security: value = fraction of breach cost avoided
+      const breachCost = (signals && signals.revenueB)
+        ? bench.breachCostM * (signals.revenueB / bench.avgRevB)  // scale to company size
+        : bench.breachCostM;
+      loM = +(breachCost * mult.effLo).toFixed(1);
+      hiM = +(breachCost * mult.effHi).toFixed(1);
+    } else {
+      // All other types: efficiency gain × addressable IT spend share
+      const addressableM = itSpendM * mult.itSpendShare;
+      loM = +(addressableM * mult.effLo).toFixed(1);
+      hiM = +(addressableM * mult.effHi).toFixed(1);
+    }
+
+    // ── Snap to sensible display ──────────────────────────────────────────
+    // Round to nearest 0.5M for clean presentation; floor at $100K
+    function snap(v) {
+      if (v < 0.5)  return Math.max(0.1, Math.round(v * 10) / 10);
+      if (v < 5)    return Math.round(v * 2) / 2;   // nearest 0.5M
+      return Math.round(v);                           // nearest $1M
+    }
+    loM = snap(loM);
+    hiM = snap(hiM);
+    if (hiM <= loM) hiM = +(loM * 1.6).toFixed(1);
+
+    // ── Build label ───────────────────────────────────────────────────────
+    const effPct = `${Math.round(mult.effLo * 100)}-${Math.round(mult.effHi * 100)}%`;
+    const basis  = mult.basis === 'breach' ? 'risk mitigation value' : 'annual savings';
+
+    const formatM = v => v < 1 ? `$${Math.round(v * 1000)}K` : `$${v}M`;
+    const source  = (signals && signals.rawSignals.length)
+      ? ` (based on ${signals.rawSignals[0]})`
+      : ` (${industry || 'industry'} benchmark)`;
+
+    return `${effPct} improvement, ~${formatM(loM)}-${formatM(hiM)} ${basis}${source}`;
+  }
+
+  /**
+   * Legacy wrapper kept for any callers that don't yet pass signals.
+   * @deprecated Use calcRealisticValue() directly.
+   */
+  function estimateValue(need, products, industry, signals) {
+    return calcRealisticValue(need, products, industry, signals || {});
   }
 
   /**
